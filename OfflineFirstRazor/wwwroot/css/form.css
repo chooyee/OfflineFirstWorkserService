@@ -1,0 +1,135 @@
+.field-wrapper {
+    display: flex
+}
+
+.field-wrapper--reverse {
+    flex-direction: row-reverse
+}
+.builder-sidebar_scroll {
+    position: sticky;
+    top: 15px;
+    max-height: 100vh;
+    overflow-y: auto;
+}
+.builder-component{
+    border:1px solid #dcdcdc;
+    padding: 0.5rem;
+}
+.footer {
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 60px;
+}
+.autocomplete {
+  position: relative;
+  display: inline-block;
+}
+
+.autocomplete-items {
+  position: absolute;
+  z-index: 99;
+  top: 100%;
+  left: 0;
+  right: 0;
+}
+.formcomponents .formcomponent {
+  text-align: left;
+  padding: 5px 5px 5px 8px;
+  margin-top: .2rem;
+  font-size: .8em;
+  line-height: 1.2;
+  border-radius: .3em
+}
+.drag-container {
+  padding: 10px;
+  border: dotted 2px #e8e8e8
+}
+
+.drag-container:hover {
+  cursor: move;
+  border: dotted 2px #ccc
+}
+.drop-container{
+min-height: 100px;
+border: 1px dashed  #dcdcdc;
+border-radius: 25px;
+padding:1rem;
+}
+
+.component-btn-group {
+  display: flex;
+  flex-direction: row-reverse;
+  position: absolute;
+  right: 0;
+  z-index: 1000;
+  margin-top: -2px
+}
+
+.builder-component {
+  position: relative;
+  min-height: 15px;
+  margin-bottom: 15px
+}
+
+.builder-component .formio-component-htmlelement {
+  border: dotted 2px #e8e8e8
+}
+
+.builder-component .formio-component-htmlelement [ref=html]:empty:before {
+  content: "HTML Content";
+  color: #aaa
+}
+
+.builder-component:not(:hover) .component-btn-group {
+  display: none
+}
+
+.builder-component:not(:hover) .drag-helper {
+  display: none
+}
+
+.drag-helper {
+  display: flex;
+  position: absolute;
+  left: 0;
+  z-index: 1000;
+  margin-top: -2px;
+  cursor: move;
+  border: dotted 2px #ccc
+}
+
+.builder-group-button {
+  background-color: transparent;
+  white-space: normal;
+  text-align: left
+}
+
+.form-builder-group-header {
+  padding: 0
+}
+
+.component-btn-group .component-settings-button {
+  float: right;
+  z-index: 1001;
+  margin: 4px 4px 0 0;
+  z-index: 1001;
+  -webkit-box-shadow: 0 0 10px 1px rgba(48,113,169,.6);
+  -moz-box-shadow: 0 0 10px 1px rgba(48,113,169,.6);
+  box-shadow: 0 0 10px 1px rgba(48,113,169,.6)
+}
+.col-drop-container{
+padding-top: 2rem;
+padding-bottom: 2rem;
+min-height:100px;
+border:dotted 2px #e8e8e8;
+}
+.drag-highlight
+{
+border:dotted 2px #ff0000;
+}
+.row .form-column{
+  padding-left: 0.4%;
+  padding-right: 0.4%;
+}

@@ -1,0 +1,134 @@
+﻿@page
+@model OfflineFirstRazor.Pages.formModel
+@{
+    Layout = null;
+
+}
+<html>
+<head>
+
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Limau Form Builder</title>
+
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+	<title>Offline First Worker Servce POC</title>
+	<link href="css/form.css" rel="stylesheet">
+	
+</head>
+<body>
+	<div class="container">
+	</div>
+	<link href="css/form.css" rel="stylesheet">
+	<script src="js/components/imageProcessor.js"></script>
+	<script src="js/components/base.js"></script>
+	<script src="js/components/button.js"></script>
+	<script src="js/components/checkbox.js"></script>
+	<script src="js/components/column.js"></script>
+	<script src="js/components/header.js"></script>
+	<script src="js/components/number.js"></script>
+	<script src="js/components/occupation.js"></script>
+	<script src="js/components/password.js"></script>
+	<script src="js/components/radio.js"></script>
+	<script src="js/components/select.js"></script>
+	<script src="js/components/textarea.js"></script>
+	<script src="js/components/textbox.js"></script>
+	<script src="js/components/cardImage.js"></script>
+	<script src="js/components/imageUpload.js"></script>
+	<script src="js/components/text.js"></script>
+	<script src="js/components/dateTimeInput.js"></script>
+
+	<script src="js/render.js"> </script>
+
+	<script>
+		const formJson = {
+			"element-id": "drop-container",
+			"element-group": "default",
+			"element-version": "v1",
+			"element-type": "container",
+			"element-parent": "",
+			"components": [
+				{
+					"position": "left",
+					"numOfColumns": "2",
+					"propertyName": "Column",
+					"formBuilderMode": true,
+					"columns": [
+						{
+							"components": [
+								{
+									"headerType": "h1",
+									"position": "left",
+									"value": "",
+									"letterCase": "none",
+									"description": "",
+									"customCss": "",
+									"propertyName": "",
+									"formBuilderMode": true,
+									"type": "Header",
+									"label": "",
+									"labelWidth": 30,
+									"labelMargin": 3,
+									"leftterCase": "none",
+									"visibility": {
+										"simple": {
+											"target": "",
+											"value": ""
+										}
+									},
+									"element-id": "component-Uti1XI89N",
+									"element-group": "Basic",
+									"element-version": "v1",
+									"element-type": "Header",
+									"element-parent": "col-jAN3SMFcd-0"
+								}
+							]
+						},
+						{
+							"components": []
+						}
+					],
+					"type": "Column",
+					"element-id": "component-jAN3SMFcd",
+					"element-group": "Basic",
+					"element-version": "v1",
+					"element-type": "Column",
+					"element-parent": "drop-container"
+				},
+				{
+					"label": "My Number box",
+					"labelPosition": "Left-Left",
+					"description": "",
+					"placeholder": "",
+					"prefix": "",
+					"suffix": "",
+					"customCss": "",
+					"validation": {
+						"lengthCheck": {
+							"min": "0",
+							"max": "0"
+						}
+					},
+					"propertyName": "",
+					"value": "",
+					"pattern": "/[^0-9]/g",
+					"formBuilderMode": true,
+					"type": "Numberbox",
+					"labelWidth": 30,
+					"labelMargin": 3,
+					"element-id": "component-j6SrF6Vyb",
+					"element-group": "Basic",
+					"element-version": "v1",
+					"element-type": "Numberbox",
+					"element-parent": "drop-container"
+				}
+			]
+		};
+		document.addEventListener('DOMContentLoaded', function () { 
+			const container = document.querySelector(".container");
+			renderForm(container, formJson);
+		});
+	</script>
+</body>
+</html>
