@@ -1,4 +1,4 @@
-﻿namespace OfflineFirstRazor.Factory
+﻿namespace Factory
 {
     public struct DomainHelper
     {

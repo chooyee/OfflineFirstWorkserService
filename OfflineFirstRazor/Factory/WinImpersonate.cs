@@ -1,4 +1,4 @@
-﻿namespace WebApi.Factory
+﻿namespace Factory
 {
     // This sample demonstrates the use of the WindowsIdentity class to impersonate a user.
     // IMPORTANT NOTES:
