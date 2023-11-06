@@ -1,3 +1,16 @@
+using Factory;
+using Microsoft.Extensions.Hosting.WindowsServices;
+using Service;
+
+LoggerService.InitLogService();
+
+var options = new WebApplicationOptions
+{
+	Args = args,
+	ContentRootPath = WindowsServiceHelpers.IsWindowsService()
+									 ? AppContext.BaseDirectory : default
+};
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
@@ -9,6 +22,8 @@ builder.Services.AddSwaggerGen();
 
 // Add services to the container.
 builder.Services.AddRazorPages();
+builder.Services.AddHostedService<OlifService>();
+builder.Host.UseWindowsService();
 
 var app = builder.Build();
 

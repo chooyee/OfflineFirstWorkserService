@@ -4,16 +4,32 @@ namespace Factory
 {
     public sealed class GlobalEnv
     {
-        public static GlobalEnv Instance { get; private set; }
-		private readonly string env;
+        public static GlobalEnv Instance
+        {
+            get
+            {
+                return lazy.Value;
+            }
+        }
+
+        private static readonly Lazy<GlobalEnv> lazy = new Lazy<GlobalEnv>();
+
+        private readonly string env;
 		private readonly SSOEndpointStruct ssoEndpoint;
 		private readonly SSOCredential userClient;
 		private readonly SSOCredential serviceClient;
+        private readonly string _sqliteDatabaseName;
+        private readonly string _sqliteConStr;
+
         private GlobalEnv()
         {
             var env = ConfigurationManager.AppSettings["env"];
 
-			ssoEndpoint = new SSOEndpointStruct();
+            _sqliteDatabaseName = ConfigurationManager.AppSettings["sqliteDB"] ?? "dice.sqlite";
+
+            _sqliteConStr = $"Data Source={AppContext.BaseDirectory}{_sqliteDatabaseName};Version=3;";
+
+            ssoEndpoint = new SSOEndpointStruct();
 			ssoEndpoint.Http = ConfigurationManager.AppSettings.Get($"{env}.sso.http") ?? "";
 			ssoEndpoint.AbsUrl = ConfigurationManager.AppSettings.Get($"{env}.sso.absurl")??"";
 			ssoEndpoint.Auth = ConfigurationManager.AppSettings.Get($"{env}.sso.auth") ?? "";
@@ -32,8 +48,9 @@ namespace Factory
         public string Environment { get { return env; } }
 		public SSOCredential UserClient { get { return userClient; } }
 		public SSOCredential ServiceClient { get { return serviceClient; } }
+        public string SqliteConnectionString { get { return _sqliteConStr; } }
+        public string SqliteDatabaseName { get { return _sqliteDatabaseName; } }
 
-		static GlobalEnv() { Instance = new GlobalEnv(); }
     }
 
     public struct EndpointStruct

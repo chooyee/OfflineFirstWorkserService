@@ -1,7 +1,8 @@
 ﻿using Newtonsoft.Json;
 
 
-namespace Factory { 
+namespace Factory.RHSSOService.Model
+{
     public class SSOToken
     {
         [JsonProperty("access_token")]
@@ -26,5 +27,5 @@ namespace Factory {
         public Guid SessionState { get; set; }
     }
 
-    
+
 }

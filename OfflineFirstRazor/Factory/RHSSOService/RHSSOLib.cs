@@ -1,10 +1,10 @@
 ﻿using Newtonsoft.Json;
+using Factory.RHSSOService.Model;
 using System.IdentityModel.Tokens.Jwt;
-using System.Net;
 using System.Net.Http.Headers;
 using System.Security;
-
-
+using Serilog;
+using System.Diagnostics;
 
 namespace Factory.RHSSOService
 {
@@ -31,19 +31,26 @@ namespace Factory.RHSSOService
             
             using (HttpClient client = new HttpClient(clientHandler))
             {
-               
-                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                var response = await client.PostAsync(requestUri, new FormUrlEncodedContent(param));
-               
-                if (response.IsSuccessStatusCode)
+                try
                 {
-                    return JsonConvert.DeserializeObject<SSOToken>(await response.Content.ReadAsStringAsync());
-                    
+                    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                    var response = await client.PostAsync(requestUri, new FormUrlEncodedContent(param));
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        return JsonConvert.DeserializeObject<SSOToken>(await response.Content.ReadAsStringAsync());
+
+                    }
+                    else
+                    {
+                        throw new Exception(await response.Content.ReadAsStringAsync());
+                    }
                 }
-                else
-                {
-					throw new Exception(await response.Content.ReadAsStringAsync());
-				}
+                catch(Exception ex) {
+                    var funcName = string.Format("{0} : {1}", new StackFrame().GetMethod().DeclaringType.FullName, System.Reflection.MethodBase.GetCurrentMethod().Name);
+                    Log.Error("{funcName}: {error}", funcName, ex.Message);
+                    throw new Exception(ex.Message);
+                }
                
             }
         }
@@ -67,18 +74,27 @@ namespace Factory.RHSSOService
 
 			using (HttpClient client = new HttpClient(clientHandler))
 			{
-				client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-				var response = await client.PostAsync(requestUri, new FormUrlEncodedContent(param));
+                try
+                {
+                    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                    var response = await client.PostAsync(requestUri, new FormUrlEncodedContent(param));
 
-				if (response.IsSuccessStatusCode)
-				{
-					return JsonConvert.DeserializeObject<SSOToken>(await response.Content.ReadAsStringAsync());
+                    if (response.IsSuccessStatusCode)
+                    {
+                        return JsonConvert.DeserializeObject<SSOToken>(await response.Content.ReadAsStringAsync());
 
-				}
-				else
-				{
-					throw new Exception(await response.Content.ReadAsStringAsync());
-				}
+                    }
+                    else
+                    {
+                        throw new Exception(await response.Content.ReadAsStringAsync());
+                    }
+                }
+                catch (Exception ex)
+                {
+                    var funcName = string.Format("{0} : {1}", new StackFrame().GetMethod().DeclaringType.FullName, System.Reflection.MethodBase.GetCurrentMethod().Name);
+                    Log.Error("{funcName}: {error}", funcName, ex.Message);
+                    throw new Exception(ex.Message);
+                }
 
 			}
 
@@ -113,17 +129,26 @@ namespace Factory.RHSSOService
 
 			using (HttpClient client = new HttpClient(handler))
 			{
-				client.DefaultRequestHeaders.Add("Authorization", authToken64);
-				HttpResponseMessage response = await client.PostAsync(url, formContent);
+                try
+                {
+                    client.DefaultRequestHeaders.Add("Authorization", authToken64);
+                    HttpResponseMessage response = await client.PostAsync(url, formContent);
 
-				if (response.IsSuccessStatusCode)
-				{
-					return JsonConvert.DeserializeObject<SSOToken>(await response.Content.ReadAsStringAsync());
-				}
-				else
-				{
-					throw new Exception(await response.Content.ReadAsStringAsync());
-				}
+                    if (response.IsSuccessStatusCode)
+                    {
+                        return JsonConvert.DeserializeObject<SSOToken>(await response.Content.ReadAsStringAsync());
+                    }
+                    else
+                    {
+                        throw new Exception(await response.Content.ReadAsStringAsync());
+                    }
+                }
+                catch (Exception ex)
+                {
+                    var funcName = string.Format("{0} : {1}", new StackFrame().GetMethod().DeclaringType.FullName, System.Reflection.MethodBase.GetCurrentMethod().Name);
+                    Log.Error("{funcName}: {error}", funcName, ex.Message);
+                    throw new Exception(ex.Message);
+                }
 
 			}
 
@@ -151,18 +176,26 @@ namespace Factory.RHSSOService
 
             using (HttpClient client = new HttpClient(handler))
             {
-               
-                client.DefaultRequestHeaders.Add("Authorization", authToken64);
-                HttpResponseMessage response = await client.PostAsync(url, formContent);
+                try
+                {
+                    client.DefaultRequestHeaders.Add("Authorization", authToken64);
+                    HttpResponseMessage response = await client.PostAsync(url, formContent);
 
-                if (response.IsSuccessStatusCode)
-                {
-                    return JsonConvert.DeserializeObject<JwtToken>(await response.Content.ReadAsStringAsync());
+                    if (response.IsSuccessStatusCode)
+                    {
+                        return JsonConvert.DeserializeObject<JwtToken>(await response.Content.ReadAsStringAsync());
+                    }
+                    else
+                    {
+                        throw new Exception(await response.Content.ReadAsStringAsync());
+                    }
                 }
-                else
+                catch (Exception ex)
                 {
-					throw new Exception(await response.Content.ReadAsStringAsync());
-				}
+                    var funcName = string.Format("{0} : {1}", new StackFrame().GetMethod().DeclaringType.FullName, System.Reflection.MethodBase.GetCurrentMethod().Name);
+                    Log.Error("{funcName}: {error}", funcName, ex.Message);
+                    throw new Exception(ex.Message);
+                }
 
             }
         }

@@ -1,7 +1,5 @@
 using Factory;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using System.DirectoryServices.ActiveDirectory;
 using WebApi.Model;
 
 namespace OfflineFirstRazor.Pages
@@ -13,7 +11,7 @@ namespace OfflineFirstRazor.Pages
 
         public loginModel()
         {
-            Domain = Factory.DomainHelper.GetPCDomainName();
+            Domain = DomainHelper.GetPCDomainName();
         }
 
         public void OnGet()

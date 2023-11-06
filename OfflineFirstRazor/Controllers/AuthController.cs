@@ -1,7 +1,7 @@
 ﻿using Factory;
 using Factory.RHSSOService;
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json.Linq;
+using Factory.RHSSOService.Model;
 using WebApi.Model;
 
 namespace WebApi.Controllers
