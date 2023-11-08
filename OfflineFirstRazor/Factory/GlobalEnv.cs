@@ -21,7 +21,7 @@ namespace Factory
         private readonly string _sqliteDatabaseName;
         private readonly string _sqliteConStr;
 
-        private GlobalEnv()
+        public GlobalEnv()
         {
             var env = ConfigurationManager.AppSettings["env"];
 
@@ -34,12 +34,14 @@ namespace Factory
 			ssoEndpoint.AbsUrl = ConfigurationManager.AppSettings.Get($"{env}.sso.absurl")??"";
 			ssoEndpoint.Auth = ConfigurationManager.AppSettings.Get($"{env}.sso.auth") ?? "";
 			ssoEndpoint.Introspect = ConfigurationManager.AppSettings.Get($"{env}.sso.introspect") ?? "";
-			ssoEndpoint.Realm = ConfigurationManager.AppSettings.Get($"{env}.sso.realm") ?? "";
+            ssoEndpoint.HealthCheck = ConfigurationManager.AppSettings.Get($"{env}.sso.healthcheck") ?? "";
+            ssoEndpoint.Realm = ConfigurationManager.AppSettings.Get($"{env}.sso.realm") ?? "";
 
 			ssoEndpoint.Auth = ssoEndpoint.Auth.Replace("{realm}", ssoEndpoint.Realm);
 			ssoEndpoint.Introspect = ssoEndpoint.Introspect.Replace("{realm}", ssoEndpoint.Realm);
+            ssoEndpoint.HealthCheck = ssoEndpoint.HealthCheck.Replace("{realm}", ssoEndpoint.Realm);
 
-			userClient.Client_id = ConfigurationManager.AppSettings.Get($"{env}.sso.user.client_id") ?? "";
+            userClient.Client_id = ConfigurationManager.AppSettings.Get($"{env}.sso.user.client_id") ?? "";
 			serviceClient.Client_id = ConfigurationManager.AppSettings.Get($"{env}.sso.service.client_id") ?? "";
 			serviceClient.Client_secret= ConfigurationManager.AppSettings.Get($"{env}.sso.service.client_secret") ?? "";
 		}
@@ -71,7 +73,8 @@ namespace Factory
 		public string AbsUrl { get; set; }
 		public string Auth { get; set; }
 		public string Introspect { get; set; }
-		public string Realm { get; set; }
+        public string HealthCheck { get; set; }
+        public string Realm { get; set; }
 
 		public static string GetRealm(string realmName)
 		{

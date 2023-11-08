@@ -10,7 +10,7 @@ namespace Factory.RHSSOService
 {
     public static class RHSSOLib
     {
-        public static async Task<SSOToken> GetUserToken(string client_id, string username, SecureString secret)
+        public static async Task<SSOToken> GetUserToken(string client_id, string username, SecureString userSecret)
         {
 			var ssoEndpoint = GlobalEnv.Instance.SSOEndpoint;
 
@@ -20,7 +20,7 @@ namespace Factory.RHSSOService
             {
                 { "client_id", client_id },
                 { "username", username },
-                { "password", secret.ToCString() },
+                { "password", userSecret.ToCString() },
                 { "grant_type", "password" }
             };
 
@@ -195,6 +195,44 @@ namespace Factory.RHSSOService
                     var funcName = string.Format("{0} : {1}", new StackFrame().GetMethod().DeclaringType.FullName, System.Reflection.MethodBase.GetCurrentMethod().Name);
                     Log.Error("{funcName}: {error}", funcName, ex.Message);
                     throw new Exception(ex.Message);
+                }
+
+            }
+        }
+
+        public static async Task<Tuple<bool,string>> HealthCheck()
+        {
+            var ssoEndpoint = GlobalEnv.Instance.SSOEndpoint;
+
+            string url = ssoEndpoint.Http + "://" + ssoEndpoint.AbsUrl + ssoEndpoint.HealthCheck;
+
+           
+            var handler = new HttpClientHandler()
+            {
+                ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+            };
+
+
+            using (HttpClient client = new HttpClient(handler))
+            {
+                try
+                {
+                    HttpResponseMessage response = await client.GetAsync(url);
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        return Tuple.Create(true,await response.Content.ReadAsStringAsync());
+                    }
+                    else
+                    {
+                        throw new Exception(await response.Content.ReadAsStringAsync());
+                    }
+                }
+                catch (Exception ex)
+                {
+                    var funcName = string.Format("{0} : {1}", new StackFrame().GetMethod().DeclaringType.FullName, System.Reflection.MethodBase.GetCurrentMethod().Name);
+                    Log.Error("{funcName}: {error}", funcName, ex.Message);
+                    return Tuple.Create(false, ex.Message);
                 }
 
             }

@@ -8,6 +8,7 @@ namespace Factory.Crypto
     [SupportedOSPlatform("windows")]
     internal class Keyman
     {
+        
         internal static string GetPublicKey(string containerName)
         {
             try

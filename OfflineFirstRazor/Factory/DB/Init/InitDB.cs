@@ -11,11 +11,11 @@ namespace Factory.DB.Init
             using (var dbContext = new DBContext())
             {
                 var result = new List<Task>();
-                var query = dbContext.QueryFactory.CreateTable(typeof(TableStruct));
+                var query = dbContext.QueryFactory.CreateTable(typeof(ModTableSSOUser));
                 result.Add(dbContext.ExecuteNonQueryAsync(query));
 
-                query = dbContext.QueryFactory.CreateTable(typeof(TableSource));
-                result.Add(dbContext.ExecuteNonQueryAsync(query));
+                //query = dbContext.QueryFactory.CreateTable(typeof(ModTableSSOUser));
+                //result.Add(dbContext.ExecuteNonQueryAsync(query));
 
                 Task.WaitAll(result.ToArray());
                 return 1;

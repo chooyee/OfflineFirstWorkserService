@@ -8,7 +8,7 @@ namespace Factory.DB
     public interface IQueryFactory
     {
         string CreateTable(Type type, string? table = null);
-        string CreateTable(string tableName, List<TableStruct> dataList);
+      
         string TruncateTable(string table);
         string DropTable(string table);
         Tuple<string, DynamicSqlParameter> SimpleQuery(string columnName, string tableName, SqlCondition condition);

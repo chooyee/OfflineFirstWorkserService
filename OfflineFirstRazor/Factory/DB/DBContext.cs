@@ -113,26 +113,7 @@ namespace Factory.DB
             DBService.BulkInsert(obj, table);
         }
 
-        public string CreateTable(string tableName, List<TableStruct> dataList)
-        {
-            var queryColumns = new List<string>();
-
-            #region Create Id as Primary key
-
-
-            var q = $"id {SqliteUtil.GetSqliteDataType("int")} {SqliteUtil.PrimaryKey} {SqliteUtil.Autoincrement}";
-
-            queryColumns.Add(q);
-            #endregion
-
-            queryColumns.AddRange(dataList.Select(col => $"{col.TableColumnName} {DataType.TEXT}"));
-
-            var query = $"create table IF NOT EXISTS {tableName} ({string.Join(",", queryColumns)})";
-
-            //Log.Debug(query);
-            return query;
-
-        }
+        
         public Task<List<T>> ReadMapperAsync<T>(string query, DynamicSqlParameter? param = null) where T : new()
         {
             return DBService.ReadMapperAsync<T>(query, param);

@@ -1,6 +1,6 @@
 using Factory;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using WebApi.Model;
+using Model;
 
 namespace OfflineFirstRazor.Pages
 {

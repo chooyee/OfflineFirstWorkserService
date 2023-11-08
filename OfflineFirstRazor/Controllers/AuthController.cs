@@ -2,7 +2,8 @@
 using Factory.RHSSOService;
 using Microsoft.AspNetCore.Mvc;
 using Factory.RHSSOService.Model;
-using WebApi.Model;
+using Model;
+using Newtonsoft.Json;
 
 namespace WebApi.Controllers
 {
@@ -17,13 +18,22 @@ namespace WebApi.Controllers
             return winAuth.Auth(loginRequest.UserName, loginRequest.Domain, loginRequest.GetPasswordAsSecureString());
         }
 
-		[HttpGet, Route("/sso/client/login")]
-		public async Task<ActionResult<SSOToken>> SSOUserLogin()
-		{
-			string username = "test001";
-			string userSecret = "1234";
+        [HttpGet, Route("/sso/healthcheck")]
+        public async Task<ActionResult<string>> SSOHealthCheck()
+        {
+            var result = await RHSSOLib.HealthCheck();
 
-			var token = await RHSSOLib.GetUserToken(GlobalEnv.Instance.UserClient.Client_id ,username, userSecret.ToSecureString());
+            return JsonConvert.SerializeObject(result);
+
+        }
+
+        [HttpPost, Route("/sso/client/login")]
+		public async Task<ActionResult<SSOToken>> SSOUserLogin(string username, string userSecret)
+		{
+			//string username = "test001";
+			//string userSecret = "1234";
+			var clientId = GlobalEnv.Instance.UserClient.Client_id;
+            var token = await RHSSOLib.GetUserToken(clientId, username, userSecret.ToSecureString());
 
 			return token;
 
