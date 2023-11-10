@@ -88,8 +88,6 @@ namespace Factory.DB
             return query;
         }
 
-      
-
         public Tuple<string, DynamicSqlParameter> IsTableExists(string table)
         {
             var query = "SELECT name FROM sqlite_master WHERE type='table' AND name=@tableName";
@@ -167,14 +165,15 @@ namespace Factory.DB
 
         public Tuple<string, DynamicSqlParameter> Insert<T>(T obj, string? table = null)
         {
-            var tableNameT = ReflectionFactory.GetTableAttribute(typeof(T));
+            var objType = obj.GetType();
+            var tableNameT = ReflectionFactory.GetTableAttribute(objType);
             if (string.IsNullOrEmpty(table) && string.IsNullOrEmpty(tableNameT)) throw new ArgumentNullException(nameof(table) + " cannot be null!");
             if (string.IsNullOrEmpty(table)) table = tableNameT;
 
             var sqlParam = new DynamicSqlParameter();
             var queryColumns = new List<string>();
             var queryParamBinders = new List<string>();
-            var propInfos = ReflectionFactory.GetMappableProperties(typeof(T));
+            var propInfos = ReflectionFactory.GetMappableProperties(objType);
             foreach (var prop in propInfos)
             {
                 var customAttribute = prop.GetCustomAttribute<SqlPropertyAttribute>();
@@ -205,14 +204,15 @@ namespace Factory.DB
         {
             try
             {
-                var tableNameT = ReflectionFactory.GetTableAttribute(typeof(T));
+                var objType = objList.First().GetType();
+                var tableNameT = ReflectionFactory.GetTableAttribute(objType);
                 if (string.IsNullOrEmpty(table) && string.IsNullOrEmpty(tableNameT)) throw new ArgumentNullException(nameof(table) + " cannot be null!");
                 if (string.IsNullOrEmpty(table)) table = tableNameT;
 
                 var bulkParamList = new List<DynamicSqlParameter>();
                 var queryColumns = new List<string>();
                 var queryParamBinders = new List<string>();
-                var propInfos = ReflectionFactory.GetMappableProperties(typeof(T));
+                var propInfos = ReflectionFactory.GetMappableProperties(objType);
                 foreach (var prop in propInfos)
                 {
                     var customAttribute = prop.GetCustomAttribute<SqlPropertyAttribute>();
@@ -303,14 +303,15 @@ namespace Factory.DB
 
         public Tuple<string, DynamicSqlParameter> Update<T>(T obj, string? table = null)
         {
-            var tableNameT = ReflectionFactory.GetTableAttribute(typeof(T));
+            var objType = obj.GetType();
+            var tableNameT = ReflectionFactory.GetTableAttribute(objType);
             if (string.IsNullOrEmpty(table) && string.IsNullOrEmpty(tableNameT)) throw new ArgumentNullException(nameof(table) + " cannot be null!");
             if (string.IsNullOrEmpty(table)) table = tableNameT;
 
             var sqlParam = new DynamicSqlParameter();
 
             var updateQuery = new List<string>();
-            var propInfos = ReflectionFactory.GetMappableProperties(typeof(T));
+            var propInfos = ReflectionFactory.GetMappableProperties(objType);
 
             var id = 0;
             var primaryKey = "";

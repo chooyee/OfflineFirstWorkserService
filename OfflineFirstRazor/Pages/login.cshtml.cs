@@ -1,6 +1,7 @@
 using Factory;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Model;
+using Service;
 
 namespace OfflineFirstRazor.Pages
 {
@@ -24,7 +25,7 @@ namespace OfflineFirstRazor.Pages
             }
         }
 
-        public void OnPost()
+        public async Task OnPost()
         {
             try
             {
@@ -34,9 +35,10 @@ namespace OfflineFirstRazor.Pages
                     UserName = Request.Form["username"],
                     Password = Request.Form["password"]
                 };
-
-                var authResult = new WinAuth().Auth(loginRequest.UserName, loginRequest.Domain, loginRequest.GetPasswordAsSecureString());
-                if (authResult)
+                var loginService = new OlifAuthService();
+                var authResult = await loginService.Login(loginRequest.UserName, loginRequest.GetPasswordAsSecureString(), loginRequest.Domain);
+                //var authResult = new WinAuth().Auth(loginRequest.UserName, loginRequest.Domain, loginRequest.GetPasswordAsSecureString());
+                if (authResult.Item1)
                 {
                     HttpContext.Session.SetString("UserName", loginRequest.UserName);
                     Response.Redirect("home");

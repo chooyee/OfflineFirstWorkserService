@@ -1,4 +1,5 @@
 ﻿using Factory;
+using Factory.RHSSOService.Model;
 using System.Security;
 
 namespace Model
@@ -16,10 +17,7 @@ namespace Model
 
         public string UserName { get; set;}
         public string Password
-        {
-            get {
-                return "";
-            }
+        {           
             set
             {
                 _password = value.ToSecureString();
@@ -43,31 +41,42 @@ namespace Model
         }
     }
 
-    public struct LoginResultModel
+    public enum LoginStatus
+    {
+        SSOAuthActive,        
+        OfflineAuthActive,
+        AuthFailed
+    }
+    public class LoginResultModel
     {
         private string _username;
-        private LoginType _loginType;
         private string _domain;
-        private string _accessToken;
-        private bool _active = false;
+        private readonly string _deviceId;
+        private LoginStatus _loginStatus;
+        private bool _ssoHealthStatus;
+        private SSOToken _token;
+        private DateTime _loginDate;
 
-        public readonly string UserName { get { return _username; } }
-        
-        public readonly LoginType LoginType { get { return _loginType; } }
+        public string UserName { get { return _username; } }
+       
+        public string Domain { get { return _domain; } }
 
-        public readonly string Domain { get { return _domain; } }
+        public string DeviceId{ get { return _deviceId; } }
 
-        public readonly string AccessToken{ get { return _accessToken; } }
+        public LoginStatus LoginStatus { get { return _loginStatus; } set { _loginStatus = value; } }
+        public bool SSOHealthStatus { get { return _ssoHealthStatus; } set { _ssoHealthStatus = value; } }
+        public SSOToken Token { get { return _token; } set { _token = value; } }
+        public DateTime LoginDate{ get { return _loginDate; } }
 
-        public readonly bool Active{ get { return _active; } }
 
-        public LoginResultModel(string username, LoginType loginType, string domain, string accessToken, bool active)
+        public LoginResultModel(string username, string domain)
         { 
             _username = username;
-            _loginType = loginType;
-            _domain = domain;
-            _accessToken = accessToken;
-            _active = active;
+            _domain = domain;           
+            _deviceId = Fingerprint.GenFingerprint();
+            _loginDate = DateTime.Now;
         }
     }
+
+    
 }

@@ -87,6 +87,13 @@ namespace Factory.DB
             }
         }
 
+        /// <summary>
+        /// ExecuteNonQuery_HP_Async - High Performance Execute
+        /// </summary>
+        /// <param name="query"></param>
+        /// <param name="param">DynamicSqlParameter</param>
+        /// <returns>Int</returns>
+        /// <exception cref="SqlException"></exception>
         public async Task<int> ExecuteNonQuery_HP_Async(string query, DynamicSqlParameter? param = null)
         {
             try
@@ -156,7 +163,7 @@ namespace Factory.DB
                 throw new SqlException(ex.Message, ex, funcName, query, param);
             }
         }
-
+               
         public async Task<DataSet> GetDataSetAsync(string query, DynamicSqlParameter? param = null)
         {
 
@@ -400,7 +407,6 @@ namespace Factory.DB
             {
                 throw new ArgumentException("'T' must be a class");
             }
-
 
             try
             {

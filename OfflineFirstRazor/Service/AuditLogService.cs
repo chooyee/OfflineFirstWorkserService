@@ -1,6 +1,5 @@
 ﻿using Factory.DB;
-using Factory.RHSSOService.Model;
-using Model;
+using Factory.DB.Model;
 using Serilog;
 using System.Diagnostics;
 

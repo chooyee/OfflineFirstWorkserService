@@ -232,6 +232,7 @@ namespace Factory.RHSSOService
                 {
                     var funcName = string.Format("{0} : {1}", new StackFrame().GetMethod().DeclaringType.FullName, System.Reflection.MethodBase.GetCurrentMethod().Name);
                     Log.Error("{funcName}: {error}", funcName, ex.Message);
+                    Log.Error("{url}", url);
                     return Tuple.Create(false, ex.Message);
                 }
 

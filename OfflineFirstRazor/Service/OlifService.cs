@@ -1,10 +1,14 @@
-﻿namespace Service
+﻿using Service.Init;
+
+namespace Service
 {
-	public class OlifService: BackgroundService
+	public partial class OlifService: BackgroundService
 	{
 		public OlifService(ILoggerFactory loggerFactory)
 		{
 			Logger = loggerFactory.CreateLogger<OlifService>();
+
+			new InitService().Init();
 		}
 
 		public ILogger Logger { get; }

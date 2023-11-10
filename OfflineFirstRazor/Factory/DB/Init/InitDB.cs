@@ -1,6 +1,4 @@
-﻿using Factory;
-using Factory.DB;
-using Model;
+﻿using Factory.DB.Model;
 
 namespace Factory.DB.Init
 {
@@ -14,8 +12,11 @@ namespace Factory.DB.Init
                 var query = dbContext.QueryFactory.CreateTable(typeof(ModTableSSOUser));
                 result.Add(dbContext.ExecuteNonQueryAsync(query));
 
-                //query = dbContext.QueryFactory.CreateTable(typeof(ModTableSSOUser));
-                //result.Add(dbContext.ExecuteNonQueryAsync(query));
+                query = dbContext.QueryFactory.CreateTable(typeof(ModTableAuditLog));
+                result.Add(dbContext.ExecuteNonQueryAsync(query));
+
+                query = dbContext.QueryFactory.CreateTable(typeof(ModTableMachineLog));
+                result.Add(dbContext.ExecuteNonQueryAsync(query));
 
                 Task.WaitAll(result.ToArray());
                 return 1;
