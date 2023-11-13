@@ -1,37 +1,41 @@
-﻿using Serilog;
+﻿using Model;
+using Serilog;
 using System.Diagnostics;
 using System.Runtime.Versioning;
 using System.Security.Cryptography;
+using System.Security.Cryptography.Xml;
 using System.Text;
 
 namespace Factory.Crypto
 {
+    /// <summary>
+    /// Cipher - Providing Encryption and Decryption library
+    /// Set to Internal to prevent library accessed by third party software
+    /// </summary>
     [SupportedOSPlatform("windows")]
-    public class Cipher:Keyman
+    internal class Cipher:Keyman
     {
-        private readonly string salt;
+        protected string salt = "";
 
-        public static Cipher Instance
+        protected Cipher()
         {
-            get
-            {
-                return lazy.Value;
-            }
+            
         }
 
-        private static readonly Lazy<Cipher> lazy = new Lazy<Cipher>();
-
-        public Cipher()
+        /// <summary>
+        /// EncryptString - return as base64 string
+        /// Max encryption data length is 200
+        /// </summary>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        /// <exception cref="CryptographicException"></exception>
+        protected string EncryptString(string data)
         {
-            salt = GetSalt();
-        }
-
-        public string EncryptString(string data)
-        {
+            var saltedData = $"{salt}{data}";
             try
             {
                 // Combine data with the salt
-                byte[] dataToEncrypt = Encoding.UTF8.GetBytes($"{data}-{salt}");
+                byte[] dataToEncrypt = Encoding.UTF8.GetBytes(saltedData);
 
                 // Get the public key
                 string publicKey = GetPublicKey();
@@ -75,7 +79,13 @@ namespace Factory.Crypto
             }
         }
 
-        public string DecryptString(string encryptedData)
+        /// <summary>
+        /// DecryptString
+        /// </summary>
+        /// <param name="encryptedBase64Str"></param>
+        /// <returns>original string</returns>
+        /// <exception cref="CryptographicException"></exception>
+        protected string DecryptString(string encryptedBase64Str)
         {
             try
             {
@@ -88,7 +98,7 @@ namespace Factory.Crypto
                     rsa.FromXmlString(privateKey);
 
                     // Convert the encrypted data back to bytes
-                    byte[] dataToDecrypt = Convert.FromBase64String(encryptedData);
+                    byte[] dataToDecrypt = Convert.FromBase64String(encryptedBase64Str);
 
                     // Decrypt the data
                     byte[] decryptedData = rsa.Decrypt(dataToDecrypt, true);
@@ -97,7 +107,8 @@ namespace Factory.Crypto
                     string decryptedText = Encoding.UTF8.GetString(decryptedData);
 
                     // Extract original data by splitting on the salt
-                    string originalData = decryptedText.Split(new[] { '-' }, 2)[0];
+                    var originalData = decryptedText.Substring(salt.Length);
+                    //string originalData = decryptedText.Split(new[] { '-' }, 2)[0];
 
                     return originalData;
                 }
@@ -118,5 +129,94 @@ namespace Factory.Crypto
             }
         }
 
+
+
+        /// <summary>
+        /// AES Encrypt string
+        /// </summary>
+        /// <param name="plainText"></param>
+        /// <param name="Key"></param>
+        /// <param name="IV"></param>
+        /// <returns>byte[]</returns>
+        /// <exception cref="ArgumentNullException"></exception>
+        internal static byte[] AesEncryptString(string plainText, byte[] Key, byte[] IV)
+        {
+            // Check arguments.
+            if (plainText == null || plainText.Length <= 0)
+                throw new ArgumentNullException(nameof(plainText));
+            if (Key == null || Key.Length <= 0)
+                throw new ArgumentNullException(nameof(Key));
+            if (IV == null || IV.Length <= 0)
+                throw new ArgumentNullException(nameof(IV));
+            byte[] encrypted;
+
+            // Create an Aes object with the specified key and IV.
+            using (Aes aes = Aes.Create())
+            {
+                aes.Key = Key;
+                aes.IV = IV;
+
+                // Create an encryptor to perform the stream transform.
+                ICryptoTransform encryptor = aes.CreateEncryptor(aes.Key, aes.IV);
+
+                // Create the streams used for encryption.
+                using MemoryStream msEncrypt = new MemoryStream();
+                using CryptoStream csEncrypt = new CryptoStream(msEncrypt, encryptor, CryptoStreamMode.Write);
+                using (StreamWriter swEncrypt = new StreamWriter(csEncrypt))
+                {
+                    //Write all data to the stream.
+                    swEncrypt.Write(plainText);
+                }
+                encrypted = msEncrypt.ToArray();
+            }
+
+            // Return the encrypted bytes from the memory stream.
+            return encrypted;
+        }
+
+        /// <summary>
+        /// AES Decrypt string
+        /// </summary>
+        /// <param name="cipherText"></param>
+        /// <param name="Key"></param>
+        /// <param name="IV"></param>
+        /// <returns>string</returns>
+        /// <exception cref="ArgumentNullException"></exception>
+        internal static string AesDecryptString(byte[] cipherText, byte[] Key, byte[] IV)
+        {
+            // Check arguments.
+            if (cipherText == null || cipherText.Length <= 0)
+                throw new ArgumentNullException(nameof(cipherText));
+            if (Key == null || Key.Length <= 0)
+                throw new ArgumentNullException(nameof(Key));
+            if (IV == null || IV.Length <= 0)
+                throw new ArgumentNullException(nameof(IV));
+
+            // Declare the string used to hold the decrypted text.
+            string plaintext = null;
+
+            // Create an Aes object with the specified key and IV.
+            using (Aes aes = Aes.Create())
+            {
+                aes.Key = Key;
+                aes.IV = IV;
+
+                // Create a decryptor to perform the stream transform.
+                ICryptoTransform decryptor = aes.CreateDecryptor(aes.Key, aes.IV);
+
+                // Create the streams used for decryption.
+                using MemoryStream msDecrypt = new MemoryStream(cipherText);
+                using CryptoStream csDecrypt = new CryptoStream(msDecrypt, decryptor, CryptoStreamMode.Read);
+                using StreamReader srDecrypt = new StreamReader(csDecrypt);
+
+                // Read the decrypted bytes from the decrypting stream
+                // and place them in a string.
+                plaintext = srDecrypt.ReadToEnd();
+            }
+
+            return plaintext;
+        }
     }
+
+
 }

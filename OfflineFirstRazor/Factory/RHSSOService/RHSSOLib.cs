@@ -108,9 +108,6 @@ namespace Factory.RHSSOService
 			string url = ssoEndpoint.Http + "://" + ssoEndpoint.AbsUrl + ssoEndpoint.Auth;
             
 
-            SSOToken token = new SSOToken();
-              
-
             string ssoCredentialStr = client_id + ":" + client_secret;
             string authToken64 = "Basic " + Base64Encode(ssoCredentialStr);
 

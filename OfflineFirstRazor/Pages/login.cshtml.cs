@@ -45,7 +45,7 @@ namespace OfflineFirstRazor.Pages
                 }
                 else
                 {
-                    Message = "Login failed!";
+                    Message = authResult.Item2;
                 }
             }
             catch (Exception ex)

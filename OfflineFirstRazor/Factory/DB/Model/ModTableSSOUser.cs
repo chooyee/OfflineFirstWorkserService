@@ -1,4 +1,5 @@
 ﻿
+using Model;
 using System.Security;
 
 namespace Factory.DB.Model
@@ -7,49 +8,55 @@ namespace Factory.DB.Model
     public class ModTableSSOUser : IDBObjectBase
     {
 
-        private string _refreshToken;
-
         [SqlProperty("id", DataType.INT)]
         public int Id { get; set; }
 
         [SqlPrimaryKey]
         [SqlProperty("username", DataType.TEXT)]
-        public string UserName { get; set; }
+        public string? UserName { get; set; }
+
+        [SqlProperty("etkiv", DataType.TEXT)]
+        public string? ETKiv { get; set; }
 
         [SqlProperty("token", DataType.TEXT)]
-        public string EncryptedRefreshToken {
-            get { 
-                return _refreshToken;
-            } 
-            set {
-                _refreshToken = Crypto.Cipher.Instance.EncryptString(value);
-            } 
-        }
+        public string? EncryptedRefreshToken { get; set; }
 
         [SqlProperty("expiryDate", DataType.DATETIME)]
-        public string RefreshTokenExpireDate { get; set; }
+        public string? RefreshTokenExpireDate { get; set; }
 
         [SqlProperty("logDate", DataType.DATETIME)]
         public string LogDate { get; set; }
 
-        public ModTableSSOUser() { }
+        public ModTableSSOUser() { 
+            LogDate = string.Format("{0:yyyy-MM-dd HH:mm:ss}", DateTime.Now);
+        }
 
         public ModTableSSOUser(string username)
         {
             UserName = username;
+            LogDate = string.Format("{0:yyyy-MM-dd HH:mm:ss}", DateTime.Now);
         }
 
-        public ModTableSSOUser(string username, string refreshToken, DateTime refreshTokenExpireDate)
+        /// <summary>
+        /// Initialize ModTableSSOUser
+        /// </summary>
+        /// <param name="username"></param>
+        /// <param name="etkiv"> </param>
+        /// <param name="encryptedRefreshToken"> Only send in encrypted refresh token!</param>
+        /// <param name="refreshTokenExpireDate"></param>
+        public ModTableSSOUser(string username, string etkiv, string encryptedRefreshToken, DateTime refreshTokenExpireDate)
         {
             UserName = username;
-            EncryptedRefreshToken = refreshToken;
+            ETKiv = etkiv;
+            EncryptedRefreshToken = encryptedRefreshToken;
             RefreshTokenExpireDate = string.Format("{0:yyyy-MM-dd HH:mm:ss}", refreshTokenExpireDate);
+            LogDate = string.Format("{0:yyyy-MM-dd HH:mm:ss}", DateTime.Now);
         }
 
-        public string getDecryptedToken()
-        {
-            return Crypto.Cipher.Instance.DecryptString(_refreshToken);
-        }
+        //public string getDecryptedToken()
+        //{
+        //    return Crypto.Cipher.Instance.DecryptString(_refreshToken);
+        //}
 
   
 
@@ -65,18 +72,18 @@ namespace Factory.DB.Model
         public int Id { get; set; }
 
         [SqlProperty("username", DataType.TEXT)]
-        public string UserName { get; set; }
+        public string? UserName { get; set; }
 
         [SqlProperty("action", DataType.TEXT)]
-        public string Action { get; set; }
+        public string? Action { get; set; }
 
         [SqlProperty("action_desc", DataType.TEXT)]
-        public string ActionDesc { get; set; }
+        public string? ActionDesc { get; set; }
 
         [SqlProperty("logDate", DataType.DATETIME)]
-        public string LogDate { get; set; }
+        public string? LogDate { get; set; }
 
-        public ModTableAuditLog() { }
+        public ModTableAuditLog() { LogDate = string.Format("{0:yyyy-MM-dd HH:mm:ss}", DateTime.Now); }
 
         public ModTableAuditLog(string username, string action, string actionDesc)
         {
@@ -100,13 +107,13 @@ namespace Factory.DB.Model
 
 
         [SqlProperty("fingerprint", DataType.TEXT)]
-        public string Fingerprint { get; set; }
+        public string? Fingerprint { get; set; }
 
 
         [SqlProperty("logDate", DataType.DATETIME)]
         public string LogDate { get; set; }
 
-        public ModTableMachineLog() { }
+        public ModTableMachineLog() { LogDate = string.Format("{0:yyyy-MM-dd HH:mm:ss}", DateTime.Now); }
 
         public ModTableMachineLog(string fingerprint)
         {
@@ -115,6 +122,56 @@ namespace Factory.DB.Model
 
         }
 
+
+    }
+
+    [SqlTable("tbl_userlogin_log")]
+    public class UserLoginLog:IDBObjectBase
+    {
+        [SqlPrimaryKey]
+        [SqlAutoIncrement]
+        [SqlProperty("id", DataType.INT)]
+        public int Id { get; set; }
+
+        [SqlProperty("username", DataType.TEXT)]
+        public string UserName { get; set; }
+
+        [SqlProperty("domain", DataType.TEXT)]
+        public string Domain { get; set; }
+
+        [SqlProperty("ssoAuthStatus", DataType.TEXT)]
+        public string SSOAuthStatus { get; set; }
+
+        [SqlProperty("winAuthStatus", DataType.TEXT)]
+        public string WinAuthStatus { get; set; }
+
+        [SqlProperty("deviceIdCheck", DataType.BOOL)]
+        public bool DeviceIdCheck { get; set; }
+
+        [SqlProperty("ssohealthstatus", DataType.BOOL)]
+        public bool SSOHealthStatus { get; set; }
+
+        [SqlProperty("ssoAuthStatus", DataType.TEXT)]
+        public string? SessionId { get; set; }
+
+        [SqlProperty("logindate", DataType.DATETIME)]
+        public DateTime LoginDate { get; set; }
+
+    }
+
+
+    [SqlTable("tbl_trusted_client")]
+    public class TrustedClient : IDBObjectBase
+    {
+        [SqlProperty("id", DataType.INT)]
+        public int Id { get; set; }
+
+        [SqlPrimaryKey]
+        [SqlProperty("client_id", DataType.TEXT)]
+        public string ClientId { get; set; }
+
+        [SqlProperty("client_name", DataType.TEXT)]
+        public string ClientName { get; set; }
 
     }
 }

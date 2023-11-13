@@ -1,5 +1,7 @@
 ﻿using Factory;
+using Factory.DB.Model;
 using Factory.RHSSOService.Model;
+using System;
 using System.Security;
 
 namespace Model
@@ -47,34 +49,25 @@ namespace Model
         OfflineAuthActive,
         AuthFailed
     }
-    public class LoginResultModel
+    public class LoginResultModel: UserLoginLog
     {
-        private string _username;
-        private string _domain;
-        private readonly string _deviceId;
-        private LoginStatus _loginStatus;
-        private bool _ssoHealthStatus;
-        private SSOToken _token;
-        private DateTime _loginDate;
+        public long LoginUnixTimestamp { 
+            get {
+                DateTimeOffset dto = new DateTimeOffset(LoginDate.ToUniversalTime());
+                return dto.ToUnixTimeSeconds();
+            } 
+        }
 
-        public string UserName { get { return _username; } }
-       
-        public string Domain { get { return _domain; } }
-
-        public string DeviceId{ get { return _deviceId; } }
-
-        public LoginStatus LoginStatus { get { return _loginStatus; } set { _loginStatus = value; } }
-        public bool SSOHealthStatus { get { return _ssoHealthStatus; } set { _ssoHealthStatus = value; } }
-        public SSOToken Token { get { return _token; } set { _token = value; } }
-        public DateTime LoginDate{ get { return _loginDate; } }
-
+        public LoginResultModel(int sessionId)
+        {
+            Id = sessionId;
+        }
 
         public LoginResultModel(string username, string domain)
         { 
-            _username = username;
-            _domain = domain;           
-            _deviceId = Fingerprint.GenFingerprint();
-            _loginDate = DateTime.Now;
+            UserName = username;
+            Domain = domain;
+            LoginDate = DateTime.Now;
         }
     }
 

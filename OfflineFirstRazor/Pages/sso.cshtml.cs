@@ -1,25 +1,26 @@
 using Factory;
 using Factory.RHSSOService;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Service;
 
 namespace OfflineFirstRazor.Pages
 {
     public class ssoModel : PageModel
     {
-        public void OnGet()
+        public async void OnGet()
         {
-            string accessToken = Request.Query["accessToken"];
+            string accessToken = Request.Query["accessToken"].ToString();
+            string sessionId = Request.Query["sessionId"].ToString();
+            string gotoPage = Request.Query["goto"].ToString();
             try
             {
+                var loginService = new OlifAuthService();
+                var authResult = await loginService.SSOLogin(int.Parse(sessionId), accessToken);
                 var jwtToken = RHSSOLib.Introspect(GlobalEnv.Instance.ServiceClient.Client_id, GlobalEnv.Instance.ServiceClient.Client_secret, accessToken).Result;
                 if (jwtToken.active)
                 {
-                    //
-                    // Get refresh token from DB --jwtToken.username
-                    // 
-
-                    Response.Redirect("/home?accessToken=" + accessToken);
+                   
+                    Response.Redirect("/home?goto=" + gotoPage);
                 }
                 else {
                     //not active token, redirect to 

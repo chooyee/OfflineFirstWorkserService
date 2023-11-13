@@ -7,10 +7,12 @@ using Factory.DB.Model;
 using Serilog;
 using System.Diagnostics;
 using System.Security;
+using System.Runtime.Versioning;
 
 namespace Service
 {
-    public class OlifAuthService
+    [SupportedOSPlatform("windows")]
+    internal class OlifAuthService
     {
 
         public OlifAuthService() { }
@@ -23,94 +25,269 @@ namespace Service
         /// <param name="domain"></param>
         /// <returns>LoginResultModel</returns>
         /// <exception cref="Exception"></exception>
-        public async Task<Tuple<bool,LoginResultModel>> Login(string username, SecureString password, string domain)
+        internal async Task<Tuple<bool, string, LoginResultModel>> Login(string username, SecureString password, string domain)
         {  
             //Create return result model
-            var loginResult = new LoginResultModel(username, domain);
-            var authResult = false;
+            var loginSession = new LoginResultModel(username, domain);
+            bool authResult;
+
             try
             {
-                #region Compare device fingerprint agains registered device fingerprint
-                var deviceId = Fingerprint.GenFingerprint();
-                var registeredDeviceId = await GetRegisteredDeviceId();
+                #region Login to Windows
 
-                if (!deviceId.Equals(registeredDeviceId))
+                // login to Windows 
+                // Generate SessionId
+                var session = CipherService.GetSessionId(loginSession, username, password, domain);
+                authResult = session.Item1;
+                if (session.Item1)
                 {
-                    throw new Exception("Device id not match with registered profile!");
-                }
-                #endregion
-
-                #region Login to SSO / Windows
-                var ssoHealth = await RHSSOLib.HealthCheck();
-                loginResult.SSOHealthStatus = ssoHealth.Item1;
-
-                ///Login to SSO if available 
-                if (loginResult.SSOHealthStatus)
-                {
-                    var ssoLoginResult = await SSOLogin(username, password, domain);
-                    authResult = ssoLoginResult.Item1;
-                    if (authResult)
-                    {
-                        loginResult.LoginStatus = LoginStatus.SSOAuthActive;
-                        loginResult.Token = ssoLoginResult.Item2;
-                    }
-                    else
-                    {
-                        loginResult.LoginStatus = LoginStatus.AuthFailed;
-
-                        //Proceed to win auth?
-                    }
+                    loginSession.WinAuthStatus = LoginStatus.OfflineAuthActive.ToString();
+                    loginSession.SessionId = session.Item2;
                 }
                 else {
-                    // login to Windows if SSO not available
-                    authResult = new WinAuth().Auth(username, domain, password);
-                                       
-                    //If Win auth successful, Get SSO refresh token from DB
-                    if (authResult)
-                    {
-                        loginResult.LoginStatus = LoginStatus.OfflineAuthActive;
-                        //loginResult.Token = await GetSSOTokenFromLocalDB(username);
-                    }
-
+                    loginSession.WinAuthStatus = LoginStatus.AuthFailed.ToString();
+                    throw new Exception(session.Item2);
                 }
                 #endregion
-                                
-                return Tuple.Create(authResult, loginResult);
-                
+
+                #region Get Cipherservice
+                var cipherService = CipherService.GetCipherService(loginSession);
+                #endregion
+
+                #region Login to SSO to get refresh token                
+                var ssoLoginResult = await SSOAuthentication(cipherService, loginSession, password);
+                if (!ssoLoginResult.Item1)
+                {
+                    loginSession.SSOAuthStatus = LoginStatus.AuthFailed.ToString();
+
+                    //To allow user working offline event SSO login failed
+                    //await loginSession.Save();
+                    //return Tuple.Create(false, "Invalid username or password!", loginSession);
+                }
+                #endregion
+
+                #region Register device id if current fingerprint is empty and sso login = true;
+                if (ssoLoginResult.Item1)
+                {                    
+                    await RegisterDeviceId(cipherService);
+                }
+                #endregion
+
+                #region Compare device fingerprint agains registered device fingerprint
+                var checkRegisteredDevice = await IsRegisteredDevice(cipherService);
+                if (!checkRegisteredDevice.Item1)
+                {
+                    loginSession.DeviceIdCheck = false;
+                    throw new Exception(checkRegisteredDevice.Item2);
+                }
+                #endregion
+
+                #region return success
+                loginSession.DeviceIdCheck = true;
+                await loginSession.Save();
+
+                return Tuple.Create(authResult, "success", loginSession);
+                #endregion
             }
             catch (Exception ex)
             {
                 var funcName = string.Format("{0} : {1}", new StackFrame().GetMethod().DeclaringType.FullName, System.Reflection.MethodBase.GetCurrentMethod().Name);
 
+                Log.Error("{funcName}: {error}", funcName, ex.Message);
+                await loginSession.Save();
+                return Tuple.Create(false, ex.Message, loginSession);
+            }
+        }
+
+        internal async Task<Tuple<bool, string, LoginResultModel>> SSOLogin(int sessionId, string clientAccessToken)
+        {
+            //Create return result model
+            var loginSession = new LoginResultModel(sessionId);
+
+            try
+            {
+                #region Introspect Token
+                var jwtToken = await RHSSOLib.Introspect(GlobalEnv.Instance.ServiceClient.Client_id, GlobalEnv.Instance.ServiceClient.Client_secret, clientAccessToken);
+                if (jwtToken.active)
+                {
+
+                    if (await GetTrustedClient(jwtToken.client_id))
+                    {
+                        loginSession.Id = sessionId;
+                        if (!await loginSession.Load())
+                        {
+                            throw new Exception("Login session expired!");
+                        }
+                        Log.Debug($"Username {loginSession.UserName} login via {jwtToken.client_id}");
+                    }
+                    else
+                    {
+                        throw new Exception("Untrusted client!");
+                    }
+                }
+                else {
+                    throw new Exception("JWT token expired!");
+                }
+                #endregion
+
+               
+                return Tuple.Create(true, "success", loginSession);
+            }
+            catch (Exception ex)
+            {
+                var funcName = string.Format("{0} : {1}", new StackFrame().GetMethod().DeclaringType.FullName, System.Reflection.MethodBase.GetCurrentMethod().Name);
+
+                Log.Error("{funcName}: {error}", funcName, ex.Message);
+                await loginSession.Save();
+                return Tuple.Create(false, ex.Message, loginSession);
+            }
+        }
+
+        /// <summary>
+        /// SSOLogin - When successfull authenticate, Save refresh token to DB, set SSOAuthStatus = Active
+        /// </summary>
+        /// <param name="cipherService"></param>
+        /// <param name="loginSession"></param>
+        /// <param name="password"></param>
+        /// <returns></returns>
+        private static async Task<Tuple<bool, string, SSOToken?>> SSOAuthentication(CipherService cipherService, LoginResultModel loginSession,  SecureString password)
+        {
+            Log.Debug("SSOLogin for {username}", loginSession.UserName);
+
+            try
+            {
+                var ssoHealth = await RHSSOLib.HealthCheck();
+                loginSession.SSOHealthStatus = ssoHealth.Item1;
+
+                ///Login to SSO if available 
+                if (loginSession.SSOHealthStatus)
+                {
+                    var ssoToken = await RHSSOLib.GetUserToken(GlobalEnv.Instance.UserClient.Client_id, loginSession.UserName, password);
+                    
+                    Log.Debug("SSO  login successful!");
+                    
+                    loginSession.SSOAuthStatus = LoginStatus.SSOAuthActive.ToString() ;                    
+
+                    // Save refresh token to local DB
+                    Log.Debug("Save refresh token to local DB");
+                    var tokenExpiryDate = DateTime.Now.AddSeconds(ssoToken.RefreshExpiresIn);
+
+                    // Encrypt refresh token using AES
+                    var enStrResult = cipherService.EncryptLongString(ssoToken.RefreshTokenSecureString().ToCString());
+
+                    // Combine Key and IV into single field
+                    var etkiv = $"{enStrResult.EncryptedKeyBase64Str}|{enStrResult.EncryptedKeyBase64Str}";
+                    
+                    //Save to local DB
+                    var userSSO = new ModTableSSOUser(loginSession.UserName, etkiv, enStrResult.EncryptedBase64Str, tokenExpiryDate);
+                    await userSSO.Save();
+                    //end save
+
+                    return Tuple.Create<bool, string, SSOToken?>(true, "success", ssoToken);
+                }
+                else
+                {
+                    Log.Debug("SSO service not available!");
+                    return Tuple.Create<bool, string, SSOToken?>(false, "SSO service not available", null);
+                }
+            }
+            catch (Exception ex)
+            {
+                var funcName = string.Format("{0} : {1}", new StackFrame().GetMethod().DeclaringType.FullName, System.Reflection.MethodBase.GetCurrentMethod().Name);
+                Log.Error("{funcName}: {error}", funcName, ex.Message);
+                return Tuple.Create<bool, string, SSOToken?>(false, ex.Message, null);
+            }
+        }
+               
+        internal static bool WindowsAuthentication(string username, SecureString password, string domain)
+        {
+            using var winAuth = new WinAuth();
+            return winAuth.Auth(username, domain, password);
+        }
+
+        /// <summary>
+        /// Get SSO Token from local DB
+        /// </summary>
+        /// <param name="username"></param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
+        internal async Task<Tuple<SecureString, long>> GetAccessToken(LoginResultModel loginSession)
+        {
+            try
+            {
+                var cipherService = CipherService.GetCipherService(loginSession);
+
+                var userSSO = new ModTableSSOUser(loginSession.UserName);
+                if (await userSSO.Load())
+                {
+                    
+                    if (DateTime.Now >= DateTime.Parse(userSSO.RefreshTokenExpireDate))
+                    {
+                        throw new Exception("Refresh token expired! Please connect to VPN and login again");
+                    }
+
+                    #region Decrypt Refresh Token
+                    //Split AES Key and IV
+                    var etkiv = userSSO.ETKiv.Split("|");
+                    var encryptedRefreshToken = new EncryptResultModel()
+                    {
+                        EncryptedKeyBase64Str = etkiv[0],
+                        EncryptedIVBase64Str = etkiv[1],
+                        EncryptedBase64Str = userSSO.EncryptedRefreshToken
+                    };
+                    
+                    #endregion
+
+                    var ssoToken = await RHSSOLib.GetUserAccessToken(GlobalEnv.Instance.UserClient.Client_id, cipherService.DecryptLongString(encryptedRefreshToken));
+                    return Tuple.Create(ssoToken.AccessTokenSecureString(), ssoToken.ExpiresIn);
+                }
+                else
+                {
+                    throw new Exception($"No token found for {loginSession.UserName}! Please connect to VPN and login again");
+                }
+            }
+            catch (Exception ex)
+            {
+                var funcName = string.Format("{0} : {1}", new StackFrame().GetMethod().DeclaringType.FullName, System.Reflection.MethodBase.GetCurrentMethod().Name);
                 Log.Error("{funcName}: {error}", funcName, ex.Message);
                 throw new Exception(ex.Message);
             }
         }
 
-        private async Task<Tuple<bool, SSOToken?>> SSOLogin(string username, SecureString password, string domain)
+        internal async Task<Tuple<bool,string>> IsRegisteredDevice(CipherService cipherService)
         {
-            try
+            var deviceId = Fingerprint.GenFingerprint();
+            var machineLog = await GetRegisteredDeviceId();
+
+            var registeredDeviceId = cipherService.Decrypt(machineLog.Fingerprint);
+
+            if (!deviceId.Equals(registeredDeviceId))
             {
-                var ssoToken = await RHSSOLib.GetUserToken(GlobalEnv.Instance.UserClient.Client_id, username, password);
-                await SaveSSOToken(ssoToken, username);
-                return Tuple.Create<bool, SSOToken?>(true, ssoToken);
-                
+                return Tuple.Create(false, "Device id not match with registered profile!");
             }
-            catch (Exception ex)
+            else
             {
-                var funcName = string.Format("{0} : {1}", new StackFrame().GetMethod().DeclaringType.FullName, System.Reflection.MethodBase.GetCurrentMethod().Name);
-                Log.Error("{funcName}: {error}", funcName, ex.Message);
-                return Tuple.Create<bool, SSOToken?>(false, null);
+                return Tuple.Create(true,"success");
             }
         }
 
-        private async Task<int> SaveSSOToken(SSOToken ssoToken, string username)
-        {
+        /// <summary>
+        /// GetRegisteredDeviceId
+        /// </summary>
+        /// <param name="cipherService"></param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
+        private async Task<ModTableMachineLog> GetRegisteredDeviceId()
+        {            
             try
-            {
-                var tokenExpiryDate = DateTime.Now.AddSeconds(ssoToken.RefreshExpiresIn);
-                var userSSO = new ModTableSSOUser(username, Factory.Crypto.Cipher.Instance.EncryptString(ssoToken.RefreshTokenSecureString().ToCString()), tokenExpiryDate);
-                return await userSSO.Save();
+            { 
+                using var dbContext = new DBContext();
+
+                var tableName = ReflectionFactory.GetTableAttribute(typeof(ModTableMachineLog));
+                var query = "select * from " + tableName;
+                var result = (await dbContext.ReadMapperAsync<ModTableMachineLog>(query)).First();
+                
+                return result;
             }
             catch (Exception ex)
             {
@@ -121,33 +298,26 @@ namespace Service
         }
 
         /// <summary>
-        /// Get SSO Token from local DB
+        /// RegisterDeviceId - register device fingerprint if current table is empty
         /// </summary>
-        /// <param name="username"></param>
+        /// <param name="cipherService"></param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
-        public async Task<SSOToken> GetSSOTokenFromLocalDB(string username)
+        private async Task RegisterDeviceId(CipherService cipherService)
         {
             try
-            {                
-                var userSSO = new ModTableSSOUser(username);
-                if (await userSSO.Load())
+            {
+                var tableName = ReflectionFactory.GetTableAttribute(typeof(ModTableMachineLog));
+                using var dbContext = new Factory.DB.DBContext();
+                var countResult = await dbContext.ExecuteScalarAsync("select count(*) from " + tableName);
+                if (int.Parse(countResult.ToString()) < 1)
                 {
-                    var tokenExpireDate = DateTime.Parse(userSSO.RefreshTokenExpireDate);
-                    if (DateTime.Now <= tokenExpireDate)
-                    {
-                        throw new Exception("Token already expired! Please connect to VPN and login again");
-                    }
-                    else
-                    {
-                        var ssoToken = new SSOToken();
-                        ssoToken.RefreshToken = userSSO.getDecryptedToken();
-                        return ssoToken;
-                    }
-                }
-                else
-                {
-                    throw new Exception($"No token found for {username}! Please connect to VPN and login again");
+
+                    var deviceId = cipherService.Encrypt(Fingerprint.GenFingerprint());
+                    var machineLog = new ModTableMachineLog(deviceId);
+
+                    var result = dbContext.QueryFactory.Insert(machineLog);
+                    await dbContext.ExecuteNonQueryAsync(result.Item1, result.Item2);
                 }
             }
             catch (Exception ex)
@@ -156,19 +326,19 @@ namespace Service
                 Log.Error("{funcName}: {error}", funcName, ex.Message);
                 throw new Exception(ex.Message);
             }
+
         }
 
-        private async Task<string> GetRegisteredDeviceId()
+        private async Task<bool> GetTrustedClient(string clientId)
         {
             try
             {
-                using var dbContext = new DBContext();
+                TrustedClient client = new TrustedClient()
+                {
+                    ClientId = clientId
+                };
 
-                var tableName = ReflectionFactory.GetTableAttribute(typeof(ModTableMachineLog));
-                var query = "select * from " + tableName;
-                var result = (await dbContext.ReadMapperAsync<ModTableMachineLog>(query)).FirstOrDefault();
-                var deviceId = Factory.Crypto.Cipher.Instance.DecryptString(result.Fingerprint);
-                return deviceId;
+                return await client.Load();
             }
             catch (Exception ex)
             {

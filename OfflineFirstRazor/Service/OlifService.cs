@@ -1,4 +1,6 @@
-﻿using Service.Init;
+﻿using Factory.DB.Model;
+using Factory;
+using System.Diagnostics;
 
 namespace Service
 {
@@ -7,9 +9,10 @@ namespace Service
 		public OlifService(ILoggerFactory loggerFactory)
 		{
 			Logger = loggerFactory.CreateLogger<OlifService>();
-
-			new InitService().Init();
-		}
+			//Init crytography keys
+            CipherService.InitKey();
+            Factory.DB.Init.InitDB.Init();
+        }
 
 		public ILogger Logger { get; }
 
@@ -28,5 +31,7 @@ namespace Service
 
 			Logger.LogInformation("OlifService has stopped.");
 		}
-	}
+
+        
+    }
 }

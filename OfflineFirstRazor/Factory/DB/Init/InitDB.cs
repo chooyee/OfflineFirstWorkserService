@@ -18,6 +18,9 @@ namespace Factory.DB.Init
                 query = dbContext.QueryFactory.CreateTable(typeof(ModTableMachineLog));
                 result.Add(dbContext.ExecuteNonQueryAsync(query));
 
+                query = dbContext.QueryFactory.CreateTable(typeof(UserLoginLog));
+                result.Add(dbContext.ExecuteNonQueryAsync(query));
+
                 Task.WaitAll(result.ToArray());
                 return 1;
             }

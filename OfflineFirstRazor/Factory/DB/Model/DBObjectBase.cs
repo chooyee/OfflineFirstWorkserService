@@ -131,7 +131,7 @@ namespace Factory.DB.Model
                             var updateQuery = dbContext.QueryFactory.Update(thisObj);
                             result = await dbContext.ExecuteNonQueryAsync(updateQuery.Item1, updateQuery.Item2);
                         }
-                        throw new Exception($"{primaryKey.Key} with values {primaryKey.Value} already exists in {tableName}!");
+                        //throw new Exception($"{primaryKey.Key} with values {primaryKey.Value} already exists in {tableName}!");
                     }
                     else
                     {
