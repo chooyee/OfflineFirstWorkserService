@@ -128,10 +128,12 @@ namespace Factory.DB.Model
     [SqlTable("tbl_userlogin_log")]
     public class UserLoginLog:IDBObjectBase
     {
-        [SqlPrimaryKey]
-        [SqlAutoIncrement]
         [SqlProperty("id", DataType.INT)]
         public int Id { get; set; }
+
+        [SqlPrimaryKey]
+        [SqlProperty("sid", DataType.TEXT)]
+        public string Sid { get; set; }
 
         [SqlProperty("username", DataType.TEXT)]
         public string UserName { get; set; }
@@ -151,7 +153,7 @@ namespace Factory.DB.Model
         [SqlProperty("ssohealthstatus", DataType.BOOL)]
         public bool SSOHealthStatus { get; set; }
 
-        [SqlProperty("ssoAuthStatus", DataType.TEXT)]
+        [SqlProperty("sessionId", DataType.TEXT)]
         public string? SessionId { get; set; }
 
         [SqlProperty("logindate", DataType.DATETIME)]

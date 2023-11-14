@@ -1,6 +1,7 @@
 using Factory;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Model;
+using Newtonsoft.Json;
 using Service;
 
 namespace OfflineFirstRazor.Pages
@@ -40,8 +41,10 @@ namespace OfflineFirstRazor.Pages
                 //var authResult = new WinAuth().Auth(loginRequest.UserName, loginRequest.Domain, loginRequest.GetPasswordAsSecureString());
                 if (authResult.Item1)
                 {
+                    var loginSession = JsonConvert.SerializeObject(authResult.Item3);
                     HttpContext.Session.SetString("UserName", loginRequest.UserName);
-                    Response.Redirect("home");
+                    HttpContext.Session.SetString("loginSession", loginSession);
+                    Response.Redirect("bridge");
                 }
                 else
                 {

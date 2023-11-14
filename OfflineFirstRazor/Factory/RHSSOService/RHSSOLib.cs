@@ -101,14 +101,14 @@ namespace Factory.RHSSOService
 
 		}
 
-		public static async Task<SSOToken> GetServiceToken(string client_id, string client_secret)
+		public static async Task<SSOToken> GetServiceToken(string client_id, SecureString client_secret)
         {
 			var ssoEndpoint = GlobalEnv.Instance.SSOEndpoint;
 
 			string url = ssoEndpoint.Http + "://" + ssoEndpoint.AbsUrl + ssoEndpoint.Auth;
             
 
-            string ssoCredentialStr = client_id + ":" + client_secret;
+            string ssoCredentialStr = client_id + ":" + client_secret.ToCString();
             string authToken64 = "Basic " + Base64Encode(ssoCredentialStr);
 
 
@@ -151,10 +151,10 @@ namespace Factory.RHSSOService
 
         }
 
-        public static async Task<JwtToken> Introspect(string client_id, string client_secret, string accessToken)
+        public static async Task<JwtToken> Introspect(string client_id, SecureString client_secret, string accessToken)
         {
             var ssoEndpoint = GlobalEnv.Instance.SSOEndpoint;
-            string ssoCredentialStr = client_id + ":" + client_secret;
+            string ssoCredentialStr = client_id + ":" + client_secret.ToCString();
             string authToken64 = "Basic " + Base64Encode(ssoCredentialStr);
 
             string url = ssoEndpoint.Http + "://" + ssoEndpoint.AbsUrl + ssoEndpoint.Introspect;

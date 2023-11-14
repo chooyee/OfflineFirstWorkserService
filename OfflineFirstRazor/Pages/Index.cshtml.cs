@@ -6,6 +6,7 @@ namespace OfflineFirstRazor.Pages
     public class IndexModel : PageModel
     {
         public string Message { get; set; }
+        public string GotoPage { get; set; }
         private readonly ILogger<IndexModel> _logger;
 
         public IndexModel(ILogger<IndexModel> logger)
@@ -19,7 +20,9 @@ namespace OfflineFirstRazor.Pages
             {
                 Response.Redirect("/?err=No session found");
             }
-            Message = $"Hello {HttpContext.Session.GetString("Username")}";
+            GotoPage = Request.Query["gotoPage"];
+
+
         }
     }
 }

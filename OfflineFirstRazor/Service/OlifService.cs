@@ -1,15 +1,11 @@
-﻿using Factory.DB.Model;
-using Factory;
-using System.Diagnostics;
-
-namespace Service
+﻿namespace Service
 {
 	public partial class OlifService: BackgroundService
 	{
 		public OlifService(ILoggerFactory loggerFactory)
 		{
 			Logger = loggerFactory.CreateLogger<OlifService>();
-			//Init crytography keys
+           
             CipherService.InitKey();
             Factory.DB.Init.InitDB.Init();
         }

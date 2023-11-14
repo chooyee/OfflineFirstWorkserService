@@ -55,16 +55,22 @@ namespace Model
             get {
                 DateTimeOffset dto = new DateTimeOffset(LoginDate.ToUniversalTime());
                 return dto.ToUnixTimeSeconds();
-            } 
+            }
+            set { }
         }
 
-        public LoginResultModel(int sessionId)
+        public LoginResultModel()
         {
-            Id = sessionId;
+        }
+
+        public LoginResultModel(string sid)
+        {
+            Sid = sid;
         }
 
         public LoginResultModel(string username, string domain)
-        { 
+        {
+            Sid = Guid.NewGuid().ToString();
             UserName = username;
             Domain = domain;
             LoginDate = DateTime.Now;

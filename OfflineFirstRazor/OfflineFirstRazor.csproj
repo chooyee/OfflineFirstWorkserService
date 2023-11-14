@@ -33,4 +33,13 @@
     <Folder Include="Factory\DB\Init\Model\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="install_ws.ps1">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="uninstall_ws.ps1">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

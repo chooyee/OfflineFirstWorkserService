@@ -26,8 +26,9 @@ namespace Factory.DB
 
         public SQLiteConnection GetSqlConnection()
         {
+            //Log.Debug("GetSqlConnection: " + _connectionString);
             var _connection = new SQLiteConnection(_connectionString);
-
+           
             try
             {
                 _connection.Open();
@@ -37,7 +38,7 @@ namespace Factory.DB
             {
                 var funcName = string.Format("{0} : {1}", new StackFrame().GetMethod().DeclaringType.FullName, MethodBase.GetCurrentMethod().Name);
 
-                Log.Error("{funcName}: Connection to MongoDB Failed: {error}", funcName, ex.Message);
+                Log.Error("{funcName}: Connection to SQLITE Failed: {error}", funcName, ex.Message);
                 throw new Exception(ex.Message);
             }
 
@@ -68,10 +69,13 @@ namespace Factory.DB
 
         public async Task<int> ExecuteNonQueryAsync(string query, DynamicSqlParameter? param = null)
         {
+            //Log.Debug("ExecuteNonQueryAsync: " + query);
             try
             {
+                //Log.Debug("Before: GetSqlConnection");
                 using (var _connection = GetSqlConnection())
                 {
+                    //Log.Debug(_connection.ConnectionString);
                     var cmd = _connection.CreateCommand();
                     cmd.CommandText = query;
                     if (param != null) cmd.SetParameters(param.SQLiteParameters);
@@ -83,6 +87,12 @@ namespace Factory.DB
             catch (Exception ex)
             {
                 var funcName = string.Format("{0} : {1}", new StackFrame().GetMethod().DeclaringType.FullName, MethodBase.GetCurrentMethod().Name);
+                //Log.Error(query);
+                //if (param != null)
+                //{
+                //    Log.Error("Param");
+                //}
+                //Log.Error(ex.Message);
                 throw new SqlException(ex.Message, ex, funcName, query, param);
             }
         }

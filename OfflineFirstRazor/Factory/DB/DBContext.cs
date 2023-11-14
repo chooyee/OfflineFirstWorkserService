@@ -1,4 +1,5 @@
 ﻿using Model;
+using Serilog;
 using System.Data;
 
 namespace Factory.DB
@@ -12,7 +13,7 @@ namespace Factory.DB
         }
         private bool disposedValue;
 
-        public Lazy<SQLiteFactory> SQLiteDBInstance => new Lazy<SQLiteFactory>(() => GetSQLiteDBInstance());
+        //public Lazy<SQLiteFactory> SQLiteDBInstance => new Lazy<SQLiteFactory>(() => GetSQLiteDBInstance());
 
         private dynamic DBService;
         public IQueryFactory QueryFactory;
@@ -20,7 +21,7 @@ namespace Factory.DB
 
         public DBContext()
         {
-            DBService = SQLiteDBInstance.Value;
+            DBService = GetSQLiteDBInstance();
             QueryFactory = new SqliteQueryFactory();
 
         }
@@ -48,7 +49,10 @@ namespace Factory.DB
 
         public SQLiteFactory GetSQLiteDBInstance()
         {
-            return new SQLiteFactory(GlobalEnv.Instance.SqliteConnectionString);
+            //Log.Debug("GetSQLiteDBInstance");
+            var sqlConn = GlobalEnv.Instance.SqliteConnectionString;
+            //Log.Debug(sqlConn);
+            return new SQLiteFactory(sqlConn);
         }
 
         //public MySqlFactory GetMYSQLDBInstance()
@@ -127,7 +131,8 @@ namespace Factory.DB
                 {
                     // TODO: dispose managed state (managed objects)
 
-                    SQLiteDBInstance.Value.Dispose();
+                    //SQLiteDBInstance.Value.Dispose();
+                    DBService.Dispose();
                 }
 
                 // TODO: free unmanaged resources (unmanaged objects) and override finalizer

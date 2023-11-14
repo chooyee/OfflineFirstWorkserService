@@ -9,11 +9,28 @@ namespace Factory
             if (string.IsNullOrEmpty(LogFolder))
                 LogFolder = AppContext.BaseDirectory;
 
-            Log.Logger = new LoggerConfiguration()
-            .MinimumLevel.Debug()
-            .WriteTo.File(string.Format("{0}/logs/log_.txt", LogFolder), rollingInterval: RollingInterval.Day)
-            .WriteTo.Console()
-            .CreateLogger();
+
+            var loggerConfig = new LoggerConfiguration();
+            if (GlobalEnv.Instance.LogLevel.Equals("debug", StringComparison.OrdinalIgnoreCase))
+            {
+                loggerConfig.MinimumLevel.Debug();
+            }
+            else if (GlobalEnv.Instance.LogLevel.Equals("information", StringComparison.OrdinalIgnoreCase))
+            {
+                loggerConfig.MinimumLevel.Information();
+            }
+            else if (GlobalEnv.Instance.LogLevel.Equals("warning", StringComparison.OrdinalIgnoreCase))
+            {
+                loggerConfig.MinimumLevel.Warning();
+            }
+            else
+            {
+                loggerConfig.MinimumLevel.Error();
+            }
+            loggerConfig.WriteTo.File(string.Format("{0}/logs/log_.txt", LogFolder), rollingInterval: RollingInterval.Day);
+            loggerConfig.WriteTo.Console();
+
+            Log.Logger = loggerConfig.CreateLogger();
         }
     }
 }

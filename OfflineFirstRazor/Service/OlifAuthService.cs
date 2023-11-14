@@ -99,21 +99,22 @@ namespace Service
             }
         }
 
-        internal async Task<Tuple<bool, string, LoginResultModel>> SSOLogin(int sessionId, string clientAccessToken)
+        internal async Task<Tuple<bool, string, LoginResultModel>> SSOLogin(string sid, string clientAccessToken)
         {
             //Create return result model
-            var loginSession = new LoginResultModel(sessionId);
+            var loginSession = new LoginResultModel(sid);
 
             try
             {
                 #region Introspect Token
-                var jwtToken = await RHSSOLib.Introspect(GlobalEnv.Instance.ServiceClient.Client_id, GlobalEnv.Instance.ServiceClient.Client_secret, clientAccessToken);
+                var jwtToken = await new RHSSOService().Introspect(clientAccessToken);
+                //jwtToken.active = true;
+                //jwtToken.client_id = "projectwms";
                 if (jwtToken.active)
                 {
 
                     if (await GetTrustedClient(jwtToken.client_id))
                     {
-                        loginSession.Id = sessionId;
                         if (!await loginSession.Load())
                         {
                             throw new Exception("Login session expired!");

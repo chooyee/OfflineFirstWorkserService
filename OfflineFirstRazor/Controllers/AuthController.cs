@@ -32,8 +32,7 @@ namespace WebApi.Controllers
 		{
 			//string username = "test001";
 			//string userSecret = "1234";
-			var clientId = GlobalEnv.Instance.UserClient.Client_id;
-            var token = await RHSSOLib.GetUserToken(clientId, username, userSecret.ToSecureString());
+            var token = await RHSSOLib.GetUserToken(GlobalEnv.Instance.UserClient.Client_id, username, userSecret.ToSecureString());
 
 			return token;
 
@@ -58,21 +57,21 @@ namespace WebApi.Controllers
 
 		}
 
-		[HttpGet, Route("/sso/token/service")]
-		public async Task<ActionResult<SSOToken>> SSOClientLogin()
-		{
+		//[HttpGet, Route("/sso/token/service")]
+		//public async Task<ActionResult<SSOToken>> SSOClientLogin()
+		//{
            
-            var token = await RHSSOLib.GetServiceToken(GlobalEnv.Instance.ServiceClient.Client_id, GlobalEnv.Instance.ServiceClient.Client_secret);
+  //          var token = await RHSSOLib.GetServiceToken(GlobalEnv.Instance.ServiceClient.Client_id, GlobalEnv.Instance.ServiceClient.Client_secret);
 
-            return token;
+  //          return token;
 
-		}
+		//}
 
-		[HttpGet, Route("/sso/token/introspect/{accessToken}")]
-		public async Task<ActionResult<JwtToken>> SSOIntrospect(string accessToken)
-		{
-			return await RHSSOLib.Introspect(GlobalEnv.Instance.ServiceClient.Client_id, GlobalEnv.Instance.ServiceClient.Client_secret, accessToken);
+		//[HttpGet, Route("/sso/token/introspect/{accessToken}")]
+		//public async Task<ActionResult<JwtToken>> SSOIntrospect(string accessToken)
+		//{
+		//	return await RHSSOLib.Introspect(GlobalEnv.Instance.ServiceClient.Client_id, GlobalEnv.Instance.ServiceClient.Client_secret, accessToken);
 
-		}
+		//}
 	}
 }

@@ -5,11 +5,10 @@ using System.Reflection;
 
 namespace Factory.DB.Model
 {
-    public interface IDBObjectBase
-    {
-       
-        int Id { get; set; }
 
+    public interface IDBObjectBase
+    {       
+        int Id { get; set; }
     }
 
     public static class DBObjectBaseExt
