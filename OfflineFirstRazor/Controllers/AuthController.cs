@@ -1,7 +1,7 @@
 ﻿using Factory;
-using Factory.RHSSOService;
+using Factory.Keycloak;
 using Microsoft.AspNetCore.Mvc;
-using Factory.RHSSOService.Model;
+using Factory.Keycloak.Model;
 using Model;
 using Newtonsoft.Json;
 

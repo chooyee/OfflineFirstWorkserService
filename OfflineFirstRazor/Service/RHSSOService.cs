@@ -1,6 +1,6 @@
 ﻿using Factory;
-using Factory.RHSSOService;
-using Factory.RHSSOService.Model;
+using Factory.Keycloak;
+using Factory.Keycloak.Model;
 using ConfigurationManager = System.Configuration.ConfigurationManager;
 namespace Service
 {

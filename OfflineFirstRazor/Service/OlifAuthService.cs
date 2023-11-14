@@ -1,7 +1,7 @@
 ﻿using Factory;
 using Factory.DB;
-using Factory.RHSSOService;
-using Factory.RHSSOService.Model;
+using Factory.Keycloak;
+using Factory.Keycloak.Model;
 using Model;
 using Factory.DB.Model;
 using Serilog;

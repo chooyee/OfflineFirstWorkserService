@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace Factory.RHSSOService.Model
+namespace Factory.Keycloak.Model
 {
     // Root myDeserializedClass = JsonSerializer.Deserialize<Root>(myJsonResponse);
     public class Account

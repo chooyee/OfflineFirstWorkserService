@@ -1,12 +1,12 @@
 ﻿using Newtonsoft.Json;
-using Factory.RHSSOService.Model;
+using Factory.Keycloak.Model;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net.Http.Headers;
 using System.Security;
 using Serilog;
 using System.Diagnostics;
 
-namespace Factory.RHSSOService
+namespace Factory.Keycloak
 {
     public static class RHSSOLib
     {

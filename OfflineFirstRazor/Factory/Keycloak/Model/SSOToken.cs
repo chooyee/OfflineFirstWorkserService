@@ -1,7 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System.Security;
 
-namespace Factory.RHSSOService.Model
+namespace Factory.Keycloak.Model
 {
     public class SSOToken
     {

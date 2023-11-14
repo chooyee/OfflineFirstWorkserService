@@ -1,6 +1,6 @@
 ﻿using Factory;
 using Factory.DB.Model;
-using Factory.RHSSOService.Model;
+using Factory.Keycloak.Model;
 using System;
 using System.Security;
 
