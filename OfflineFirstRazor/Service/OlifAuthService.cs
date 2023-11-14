@@ -84,6 +84,7 @@ namespace Service
 
                 #region return success
                 loginSession.DeviceIdCheck = true;
+                await ClearSessions(loginSession);
                 await loginSession.Save();
 
                 return Tuple.Create(authResult, "success", loginSession);
@@ -94,7 +95,9 @@ namespace Service
                 var funcName = string.Format("{0} : {1}", new StackFrame().GetMethod().DeclaringType.FullName, System.Reflection.MethodBase.GetCurrentMethod().Name);
 
                 Log.Error("{funcName}: {error}", funcName, ex.Message);
+                await ClearSessions(loginSession);
                 await loginSession.Save();
+                
                 return Tuple.Create(false, ex.Message, loginSession);
             }
         }
@@ -346,6 +349,26 @@ namespace Service
                 var funcName = string.Format("{0} : {1}", new StackFrame().GetMethod().DeclaringType.FullName, System.Reflection.MethodBase.GetCurrentMethod().Name);
                 Log.Error("{funcName}: {error}", funcName, ex.Message);
                 throw new Exception(ex.Message);
+            }
+        }
+
+        private async Task<int> ClearSessions(LoginResultModel loginSession)
+        {
+            try
+            {
+                var table = ReflectionFactory.GetTableAttribute(typeof(LoginResultModel));
+                var query = $"Update {table} set sessionId='' where sid<>@sid";
+                var sqlParams = new DynamicSqlParameter();
+                sqlParams.Add("@sid", loginSession.Sid);
+
+                var dbContext = new DBContext();
+                return await dbContext.ExecuteNonQueryAsync(query, sqlParams);
+            }
+            catch (Exception ex)
+            {
+                var funcName = string.Format("{0} : {1}", new StackFrame().GetMethod().DeclaringType.FullName, System.Reflection.MethodBase.GetCurrentMethod().Name);
+                Log.Error("{funcName}: {error}", funcName, ex.Message);
+                return 0; //do not throw error!
             }
         }
     }
