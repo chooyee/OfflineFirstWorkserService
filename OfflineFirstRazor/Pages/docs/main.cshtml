@@ -1,0 +1,177 @@
+﻿@page
+@model OfflineFirstRazor.Pages.docs.mainModel
+@{
+    Layout = "_docLayout";
+}
+<style>
+    .box {
+        margin:2rem;
+        
+    }
+</style>
+<section class="d-flex2">
+    <div class="card box d-flex">
+        <div class="card-body">
+            <div class="docs-landing__card-header">
+                <h2 class="card-title">Unified Login Page</h2>
+                <h4><a href="https://unilogin.chooyee.co" target="_blank">https://unilogin.chooyee.co </a></h4>
+                <h6 class="card-subtitle mb-2 text-body-secondary">End user login page for DBOS Support Center and WMS</h6>
+            </div>
+            <div class="docs-landing__card-content">
+                <p>Test user: test001/1234                        
+                </p>
+                <p>
+                    After login successfully, user will be redirect to "Bridge" page for POC purpose. 
+                    The bridge page is for integration test.
+                </p>
+            </div>
+            
+        </div>
+    </div>
+    <div class="card box d-flex">
+        <div class="card-body">
+          
+            <div class="docs-landing__card-header">
+                <h2 class="card-title">Bridge to WMS/DBOS Support Center</h2>
+            <h4><a href="https://unilogin.chooyee.co/bridge" target="_blank">https://unilogin.chooyee.co/bridge </a></h4>
+                <h6 class="card-subtitle mb-2 text-body-secondary">This page is to for WMS/DBOS developer to simulate end user click on url link</h6>
+            </div>
+            <div class="docs-landing__card-content">
+                <p>The purpose of this page is to simulate user clicked on the WMS/DBOS url link</p>
+                <p>Enter the url for Uni Login to redirect, then click on submit button</p>
+                <p>Format as below:</p>
+                <pre>[baseurl]?gotoPage=[gotoPage]&sid=[sid]&username=[username]&accesstoken=[accessToken]</pre>
+                <p>The access token is generated from RHSSO using Uni Login client id (ProjectOwl). 
+                    The token only valid for 180 seconds. The duration may be different in actual UAT and production.
+                </p>
+            </div>
+            
+        </div>
+    </div>
+
+    <div class="card box">
+        <div class="card-body">
+            <div class="docs-landing__card-header">
+                <h2 class="card-title">WMS back to Uni Login (DBOS)</h2>
+                <h4><a href="https://unilogin.chooyee.co/sso" target="_blank">https://unilogin.chooyee.co/sso </a></h4>
+                <h6 class="card-subtitle mb-2 text-body-secondary">This page is to for WMS redirect end user back to Uni Login (DBOS)</h6>
+            </div>
+            <div class="docs-landing__card-content">
+                <p>The purpose of this page is for WMS redirect end user back to Uni Login (DBOS)</p>                
+                <p>Format as below:</p>
+                <pre>[uni login base url]/sso?gotoPage=[gotoPage]&sid=[sid]&username=[username]&accesstoken=[accessToken]</pre>
+                <p>
+                    The access token is generated from RHSSO using Uni Login client id (ProjectWMS).
+                    The token only valid for 180 seconds. The duration may be different in actual UAT and production.
+                </p>
+                <p><bold>* For POC purpose, end user will be redirect to generic page with content indicating [gotoPage]*</bold></p>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="card box">
+        <div class="card-body">
+            <div class="docs-landing__card-header">
+                <h2 class="card-title">How to Get Access Token from RHSSO</h2>
+                <h4><a href="https://172.234.72.43:8443/realms/DBOS/protocol/openid-connect/token" target="_blank">https://172.234.72.43:8443/realms/DBOS/protocol/openid-connect/token </a></h4>
+                <h6 class="card-subtitle mb-2 text-body-secondary">How to Get Access Token from RHSSO</h6>
+            </div>
+            <div class="docs-landing__card-content">
+                <p>The purpose of this page is for WMS redirect end user back to Uni Login (DBOS)</p>
+                <pre>Endpoint: https://172.234.72.43:8443/realms/DBOS/protocol/openid-connect/token</pre>
+                <pre>Client id: projectwms</pre>
+                <pre>Client secret: 9rSC5uXcMa2E76C56U8WIGJcADgEcrXy</pre>
+                <p>Curl sample as below:</p>
+                <pre>
+curl --location 'https://172.234.72.43:8443/realms/DBOS/protocol/openid-connect/token' \
+--header 'Content-Type: application/x-www-form-urlencoded' \
+--data-urlencode 'client_id=projectwms' \
+--data-urlencode 'client_secret=9rSC5uXcMa2E76C56U8WIGJcADgEcrXy' \
+--data-urlencode 'grant_type=client_credentials'</pre>
+
+                <p>
+                    Return Json:<pre>{
+    "access_token": "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJFclJhakxvS0YxeVQ4MXVWZ1hETDlFcWFGQUxUTTdiLXlWcS1Fak14eGZnIn0.eyJleHAiOjE2OTk5NTUyMzMsImlhdCI6MTY5OTk1NDkzMywianRpIjoiNjQwY2QyOTctZGFiMS00ODdiLWI4MTQtZjgzOTU3ZjU3NThhIiwiaXNzIjoiaHR0cHM6Ly8xNzIuMjM0LjcyLjQzOjg0NDMvcmVhbG1zL0RCT1MiLCJhdWQiOiJhY2NvdW50Iiwic3ViIjoiZWRlZDhlNTItOTM4Ni00MmVhLTkxNzEtMDdhNWIxNGMwYzkxIiwidHlwIjoiQmVhcmVyIiwiYXpwIjoicHJvamVjdHdtcyIsImFjciI6IjEiLCJhbGxvd2VkLW9yaWdpbnMiOlsiLyoiXSwicmVhbG1fYWNjZXNzIjp7InJvbGVzIjpbIm9mZmxpbmVfYWNjZXNzIiwiZGVmYXVsdC1yb2xlcy1kYm9zIiwidW1hX2F1dGhvcml6YXRpb24iXX0sInJlc291cmNlX2FjY2VzcyI6eyJhY2NvdW50Ijp7InJvbGVzIjpbIm1hbmFnZS1hY2NvdW50IiwibWFuYWdlLWFjY291bnQtbGlua3MiLCJ2aWV3LXByb2ZpbGUiXX19LCJzY29wZSI6InByb2ZpbGUgZW1haWwiLCJjbGllbnRIb3N0IjoiMTE1LjE2NC4yMTUuMjciLCJlbWFpbF92ZXJpZmllZCI6ZmFsc2UsInByZWZlcnJlZF91c2VybmFtZSI6InNlcnZpY2UtYWNjb3VudC1wcm9qZWN0d21zIiwiY2xpZW50QWRkcmVzcyI6IjExNS4xNjQuMjE1LjI3IiwiY2xpZW50X2lkIjoicHJvamVjdHdtcyJ9.mTDNdZeRmkAwzn6UZiGj_c5K3FTLHfiUO3BaUhSTXLb63_R5zczp1gEhnu92ZyHhhHiypm6o2XdhSDE7ssFGm-e07JCjRClfqM4i2itTNBJ-cBCZR2dj3NxIveaHGdYYCxQ6447EHXvn-acqjwy1WWVdXlEMEwMDzmnZJmmI-LwkZ2REkMOdzkaRhegFkleS-baK9xuyVMPJTbw3f8mp2Rs019aGIQ0Kxk3_x4Y2zxZ47yt2XaPu0gw7rdp1aqToffGEtmTo3PfIM6S-P6jHKK70rqiE9W5qRSSYTp325Po-cSlSxZrpUNCb_v-v-kZACsL2Ita649qqudQgpXR5Ag",
+    "expires_in": 300,
+    "refresh_expires_in": 0,
+    "token_type": "Bearer",
+    "not-before-policy": 0,
+    "scope": "profile email"
+}</pre>
+                </p>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="card box">
+        <div class="card-body">
+            <div class="docs-landing__card-header">
+                <h2 class="card-title">How to Introspect Access Token </h2>
+                <h4><a href="https://172.234.72.43:8443/realms/DBOS/protocol/openid-connect/token/introspect" target="_blank">https://172.234.72.43:8443/realms/DBOS/protocol/openid-connect/token/introspect </a></h4>
+                <h6 class="card-subtitle mb-2 text-body-secondary">How to Get Access Token from RHSSO</h6>
+            </div>
+            <div class="docs-landing__card-content">
+                <p>The purpose of this page is for WMS redirect end user back to Uni Login (DBOS)</p>
+                <pre>Endpoint: https://172.234.72.43:8443/realms/DBOS/protocol/openid-connect/token/introspect</pre>
+                <pre>Client id: projectwms</pre>
+                <pre>Client secret: 9rSC5uXcMa2E76C56U8WIGJcADgEcrXy</pre>
+                <p>Curl sample as below:</p>
+                <pre>
+curl --location 'https://172.234.72.43:8443/realms/DBOS/protocol/openid-connect/token/introspect' \
+--header 'Content-Type: application/x-www-form-urlencoded' \
+--data-urlencode 'client_id=projectwms' \
+--data-urlencode 'client_secret=9rSC5uXcMa2E76C56U8WIGJcADgEcrXy' \
+--data-urlencode 'token=eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJFclJhakxvS0YxeVQ4MXVWZ1hETDlFcWFGQUxUTTdiLXlWcS1Fak14eGZnIn0.eyJleHAiOjE2OTk5NTYxMDcsImlhdCI6MTY5OTk1NTgwNywianRpIjoiZDkzNWE2N2MtYWYzNi00NmQ5LTk5MmItMzQ4YjcwNDk3ZjY1IiwiaXNzIjoiaHR0cHM6Ly8xNzIuMjM0LjcyLjQzOjg0NDMvcmVhbG1zL0RCT1MiLCJhdWQiOiJhY2NvdW50Iiwic3ViIjoiZWRlZDhlNTItOTM4Ni00MmVhLTkxNzEtMDdhNWIxNGMwYzkxIiwidHlwIjoiQmVhcmVyIiwiYXpwIjoicHJvamVjdHdtcyIsImFjciI6IjEiLCJhbGxvd2VkLW9yaWdpbnMiOlsiLyoiXSwicmVhbG1fYWNjZXNzIjp7InJvbGVzIjpbIm9mZmxpbmVfYWNjZXNzIiwiZGVmYXVsdC1yb2xlcy1kYm9zIiwidW1hX2F1dGhvcml6YXRpb24iXX0sInJlc291cmNlX2FjY2VzcyI6eyJhY2NvdW50Ijp7InJvbGVzIjpbIm1hbmFnZS1hY2NvdW50IiwibWFuYWdlLWFjY291bnQtbGlua3MiLCJ2aWV3LXByb2ZpbGUiXX19LCJzY29wZSI6InByb2ZpbGUgZW1haWwiLCJjbGllbnRIb3N0IjoiMTE1LjE2NC4yMTUuMjciLCJlbWFpbF92ZXJpZmllZCI6ZmFsc2UsInByZWZlcnJlZF91c2VybmFtZSI6InNlcnZpY2UtYWNjb3VudC1wcm9qZWN0d21zIiwiY2xpZW50QWRkcmVzcyI6IjExNS4xNjQuMjE1LjI3IiwiY2xpZW50X2lkIjoicHJvamVjdHdtcyJ9.DdC-UqPzIpHSiaCPgVyD2m8XUxO_6DadIbQKZss2nA1SZwA0KthVGv_w1AWBUCTqc6HJKaJjwxZy99HHiyrMwVbYtq-jTk7jm4PPIzrcjce3UOFZplkIbXYCc_gXbJpPsY7SIZbjQKEMGesu6E4m2QMLziZetfM9hZKlXq7MSjnbn1LpA7i2B0QsfOPlZkkjqBgnFmwcMXjUzlRHl8LywIf9CIUKkC3b9hAKM3XfGqItp5j0k99bQXZ8B_-fPHkd1RXE2_OCXAjEUHRfnyz1_-prawuIb_J7n882PU6Ohg4-NkHPZbiztIU52Nvyn2wTTjjUvIGRVM3gONnAqbpQMw'</pre>
+
+                <p>
+                    Return Json:<pre>{
+    "exp": 1699956107,
+    "iat": 1699955807,
+    "jti": "d935a67c-af36-46d9-992b-348b70497f65",
+    "iss": "https://172.234.72.43:8443/realms/DBOS",
+    "aud": "account",
+    "sub": "eded8e52-9386-42ea-9171-07a5b14c0c91",
+    "typ": "Bearer",
+    "azp": "projectwms",
+    "preferred_username": "service-account-projectwms",
+    "email_verified": false,
+    "acr": "1",
+    "allowed-origins": [
+        "/*"
+    ],
+    "realm_access": {
+        "roles": [
+            "offline_access",
+            "default-roles-dbos",
+            "uma_authorization"
+        ]
+    },
+    "resource_access": {
+        "account": {
+            "roles": [
+                "manage-account",
+                "manage-account-links",
+                "view-profile"
+            ]
+        }
+    },
+    "scope": "profile email",
+    "clientHost": "115.164.215.27",
+    "clientAddress": "115.164.215.27",
+    "client_id": "projectwms",
+    "username": "service-account-projectwms",
+    "active": true
+}</pre>
+                </p>
+                <p style="color:red">
+                    Invalid token<pre>{
+    "active": false
+}</pre>
+                </p>
+            </div>
+
+        </div>
+    </div>
+</section>

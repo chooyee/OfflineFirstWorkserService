@@ -15,7 +15,8 @@ namespace OfflineFirstRazor.Pages
     public class BridgeModel
     {
         [BindProperty]
-        public string Url { get; set; }
+        public string BaseUrl { get; set; }
+        public string GotoPage { get; set; }
 
     }
     /// <summary>
@@ -41,7 +42,7 @@ namespace OfflineFirstRazor.Pages
 
                 RHSSOService service = new RHSSOService();
                 var ssoToken = await service.GetServiceToken();
-                Response.Redirect($"{bridgeParams.Url}?sid={loginSession.Sid}&username={loginSession.UserName}&accesstoken={ssoToken.AccessTokenSecureString().ToCString()}");
+                Response.Redirect($"{bridgeParams.BaseUrl}?gotoPage={bridgeParams.GotoPage}&sid={loginSession.Sid}&username={loginSession.UserName}&accesstoken={ssoToken.AccessTokenSecureString().ToCString()}");
             }
             catch (Exception ex)
             {
