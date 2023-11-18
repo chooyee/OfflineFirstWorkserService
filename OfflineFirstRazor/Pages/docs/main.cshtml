@@ -61,7 +61,7 @@
                 <p>Format as below:</p>
                 <pre>[uni login base url]/sso?gotoPage=[gotoPage]&sid=[sid]&username=[username]&accesstoken=[accessToken]</pre>
                 <p>
-                    The access token is generated from RHSSO using Uni Login client id (ProjectWMS).
+                    The access token is generated from RHSSO using RHSSO client id (ProjectWMS).
                     The token only valid for 180 seconds. The duration may be different in actual UAT and production.
                 </p>
                 <p><bold>* For POC purpose, end user will be redirect to generic page with content indicating [gotoPage]*</bold></p>
@@ -75,10 +75,9 @@
             <div class="docs-landing__card-header">
                 <h2 class="card-title">How to Get Access Token from RHSSO</h2>
                 <h4><a href="https://172.234.72.43:8443/realms/DBOS/protocol/openid-connect/token" target="_blank">https://172.234.72.43:8443/realms/DBOS/protocol/openid-connect/token </a></h4>
-                <h6 class="card-subtitle mb-2 text-body-secondary">How to Get Access Token from RHSSO</h6>
+                <h6 class="card-subtitle mb-2 text-body-secondary">Guide to obtain access token from RHSSO/Keycloak</h6>
             </div>
             <div class="docs-landing__card-content">
-                <p>The purpose of this page is for WMS redirect end user back to Uni Login (DBOS)</p>
                 <pre>Endpoint: https://172.234.72.43:8443/realms/DBOS/protocol/openid-connect/token</pre>
                 <pre>Client id: projectwms</pre>
                 <pre>Client secret: 9rSC5uXcMa2E76C56U8WIGJcADgEcrXy</pre>
@@ -110,10 +109,9 @@ curl --location 'https://172.234.72.43:8443/realms/DBOS/protocol/openid-connect/
             <div class="docs-landing__card-header">
                 <h2 class="card-title">How to Introspect Access Token </h2>
                 <h4><a href="https://172.234.72.43:8443/realms/DBOS/protocol/openid-connect/token/introspect" target="_blank">https://172.234.72.43:8443/realms/DBOS/protocol/openid-connect/token/introspect </a></h4>
-                <h6 class="card-subtitle mb-2 text-body-secondary">How to Get Access Token from RHSSO</h6>
+                <h6 class="card-subtitle mb-2 text-body-secondary">Guide  to introspect access token</h6>
             </div>
             <div class="docs-landing__card-content">
-                <p>The purpose of this page is for WMS redirect end user back to Uni Login (DBOS)</p>
                 <pre>Endpoint: https://172.234.72.43:8443/realms/DBOS/protocol/openid-connect/token/introspect</pre>
                 <pre>Client id: projectwms</pre>
                 <pre>Client secret: 9rSC5uXcMa2E76C56U8WIGJcADgEcrXy</pre>
