@@ -8,6 +8,6 @@
 
 $folder = (Get-Location).path + "\"
 $binaryPathName = $folder + "OfflineFirstRazor.exe  --contentRoot " + $folder 
-New-Service -Name PulseCheckWorkerService -BinaryPathName $binaryPathName -Description "OfflineFirstRazor" -DisplayName "PulseCheckWorkerService" -StartupType Automatic
+New-Service -Name OlifService -BinaryPathName $binaryPathName -Description "Project Offline First" -DisplayName "OlifService" -StartupType Automatic
 
 Read-Host -Prompt "Press any key to continue..."
