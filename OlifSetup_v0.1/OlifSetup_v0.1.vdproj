@@ -15,7 +15,7 @@
     {
         "Entry"
         {
-        "MsmKey" = "8:_A742D92BC0E143948D0FE403132040C6"
+        "MsmKey" = "8:_59B4BC9B750246FF9479AF770EDCDE42"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -37,6 +37,22 @@
         "PrivateKeyFile" = "8:"
         "TimeStampServer" = "8:"
         "InstallerBootstrapper" = "3:2"
+            "BootstrapperCfg:{63ACBE69-63AA-4F98-B2B6-99F9E24495F2}"
+            {
+            "Enabled" = "11:TRUE"
+            "PromptEnabled" = "11:TRUE"
+            "PrerequisitesLocation" = "2:1"
+            "Url" = "8:"
+            "ComponentsUrl" = "8:"
+                "Items"
+                {
+                    "{EDC2488A-8267-493A-A98E-7D9C3B36CDF3}:.NETFramework,Version=v4.7.2"
+                    {
+                    "Name" = "8:Microsoft .NET Framework 4.7.2 (x86 and x64)"
+                    "ProductCode" = "8:.NETFramework,Version=v4.7.2"
+                    }
+                }
+            }
         }
         "Release"
         {
@@ -53,41 +69,47 @@
         "PrivateKeyFile" = "8:"
         "TimeStampServer" = "8:"
         "InstallerBootstrapper" = "3:2"
+            "BootstrapperCfg:{63ACBE69-63AA-4F98-B2B6-99F9E24495F2}"
+            {
+            "Enabled" = "11:TRUE"
+            "PromptEnabled" = "11:TRUE"
+            "PrerequisitesLocation" = "2:1"
+            "Url" = "8:"
+            "ComponentsUrl" = "8:"
+            }
         }
     }
     "Deployable"
     {
         "CustomAction"
         {
-            "{4AA51A2D-7D85-4A59-BA75-B0809FC8B380}:_1E4E30A3082F4E819E71C5937ABD4FD0"
+            "{4AA51A2D-7D85-4A59-BA75-B0809FC8B380}:_252C38EDC566478C893C24C7ADD67045"
             {
             "Name" = "8:Publish Items from OfflineFirstRazor (Active)"
             "Condition" = "8:"
-            "Object" = "8:_A742D92BC0E143948D0FE403132040C6"
+            "Object" = "8:_59B4BC9B750246FF9479AF770EDCDE42"
             "FileType" = "3:2"
             "InstallAction" = "3:1"
             "Arguments" = "8:/Install"
             "EntryPoint" = "8:"
             "Sequence" = "3:1"
-            "Identifier" = "8:_4334396D_4A33_463F_921A_4BF92891C9A2"
+            "Identifier" = "8:_CCBE88A4_2F19_4086_BEAC_974EE827299E"
             "InstallerClass" = "11:FALSE"
             "CustomActionData" = "8:"
-            "Run64Bit" = "11:TRUE"
             }
-            "{4AA51A2D-7D85-4A59-BA75-B0809FC8B380}:_EBD348844D814FF4B9896078EAA3F40D"
+            "{4AA51A2D-7D85-4A59-BA75-B0809FC8B380}:_A059AE52D0114620B30B01B1133E96BE"
             {
             "Name" = "8:Publish Items from OfflineFirstRazor (Active)"
             "Condition" = "8:"
-            "Object" = "8:_A742D92BC0E143948D0FE403132040C6"
+            "Object" = "8:_59B4BC9B750246FF9479AF770EDCDE42"
             "FileType" = "3:2"
             "InstallAction" = "3:4"
             "Arguments" = "8:/Uninstall"
             "EntryPoint" = "8:"
             "Sequence" = "3:1"
-            "Identifier" = "8:_D3C71DFD_5DDA_4601_B2B0_53C1F7A330AA"
+            "Identifier" = "8:_891ED842_3A91_489F_A2C6_E790D213151C"
             "InstallerClass" = "11:FALSE"
             "CustomActionData" = "8:"
-            "Run64Bit" = "11:TRUE"
             }
         }
         "DefaultFeature"
@@ -171,7 +193,7 @@
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:Olif Service"
         "ProductCode" = "8:{72E8DFB5-AB79-418F-9A3E-3C7115F9F3CE}"
-        "PackageCode" = "8:{F485E0F1-4C5B-4406-96EA-806F9328F6A6}"
+        "PackageCode" = "8:{D8A3CF73-FDB0-4835-874B-EFAD43BCEB4A}"
         "UpgradeCode" = "8:{E592F6FF-7C58-44C2-9E5C-62336EE5567B}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"
@@ -690,7 +712,7 @@
         }
         "ProjectOutput"
         {
-            "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_A742D92BC0E143948D0FE403132040C6"
+            "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_59B4BC9B750246FF9479AF770EDCDE42"
             {
             "SourcePath" = "8:..\\OfflineFirstRazor\\obj\\Debug\\net6.0-windows\\apphost.exe"
             "TargetName" = "8:"

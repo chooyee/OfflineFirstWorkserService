@@ -2,6 +2,7 @@ using Factory;
 using Microsoft.Extensions.Hosting.WindowsServices;
 using Service;
 using CliWrap;
+using Serilog;
 
 LoggerService.InitLogService();
 
@@ -12,7 +13,7 @@ var options = new WebApplicationOptions
 									 ? AppContext.BaseDirectory : default
 };
 
-string ServiceName = $"{Global.GlobalConfig.Instance.AppName} Service v{Global.GlobalConfig.Instance.AppVersion}";
+string ServiceName = "Olif Service";
 
 if (args is { Length: 1 })
 {
@@ -31,23 +32,31 @@ if (args is { Length: 1 })
         }
         else if (args[0] is "/Uninstall")
         {
-            //Perform housekeep
-            //Delete database
-            System.IO.File.Delete(AppContext.BaseDirectory + Global.GlobalConfig.Instance.SqliteDatabaseName);
-            //Remove Key
-            CipherService.UninstallKey();
-
+            Log.Debug("Stop service");
             await Cli.Wrap("sc")
                 .WithArguments(new[] { "stop", ServiceName })
                 .ExecuteAsync();
+
+
+            Log.Debug("Delete service");
             await Cli.Wrap("sc")
                 .WithArguments(new[] { "delete", ServiceName })
                 .ExecuteAsync();
+
+            //Perform housekeep
+            //Delete database
+            Log.Debug("Delete DB");
+            System.IO.File.Delete(AppContext.BaseDirectory + Global.GlobalConfig.Instance.SqliteDatabaseName);
+            //Remove Key
+            Log.Debug("Remove key");
+            CipherService.UninstallKey();
+
         }
     }
     catch (Exception ex)
     {
         Console.WriteLine(ex);
+        Log.Error(ex.Message);
     }
 
     return;

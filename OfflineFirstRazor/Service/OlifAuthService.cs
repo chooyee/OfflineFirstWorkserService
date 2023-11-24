@@ -158,15 +158,17 @@ namespace Service
         {
             Log.Debug("SSOLogin for {username}", loginSession.UserName);
 
+            var ssoService = new RHSSOService();
+
             try
             {
-                var ssoHealth = await RHSSOLib.HealthCheck();
+                var ssoHealth = await ssoService.HealthCheck();
                 loginSession.SSOHealthStatus = ssoHealth.Item1;
 
                 ///Login to SSO if available 
                 if (loginSession.SSOHealthStatus)
                 {
-                    var ssoToken = await RHSSOLib.GetUserToken(Global.GlobalConfig.Instance.UserClient.Client_id, loginSession.UserName, password);
+                    var ssoToken = await ssoService.GetUserToken(loginSession.UserName, password);
                     
                     Log.Debug("SSO  login successful!");
                     
@@ -239,10 +241,11 @@ namespace Service
                         EncryptedIVBase64Str = etkiv[1],
                         EncryptedBase64Str = userSSO.EncryptedRefreshToken
                     };
-                    
+
                     #endregion
 
-                    var ssoToken = await RHSSOLib.GetUserAccessToken(Global.GlobalConfig.Instance.UserClient.Client_id, cipherService.DecryptLongString(encryptedRefreshToken));
+                    var ssoService = new RHSSOService();
+                    var ssoToken = await ssoService.GetUserToken(cipherService.DecryptLongString(encryptedRefreshToken));
                     return Tuple.Create(ssoToken.AccessTokenSecureString(), ssoToken.ExpiresIn);
                 }
                 else

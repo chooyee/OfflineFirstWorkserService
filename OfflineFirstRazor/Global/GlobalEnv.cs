@@ -1,6 +1,5 @@
 ﻿using Extension;
-using Model.sso;
-using System.Security;
+using Model.SSO;
 
 namespace Global
 {
@@ -68,7 +67,7 @@ namespace Global
     }
 
 
-    public struct SSOConfig : iSSOConfig
+    public struct SSOConfig : ISSOConfig
     {
         public string Http { get; set; }
         public string AbsUrl { get; set; }

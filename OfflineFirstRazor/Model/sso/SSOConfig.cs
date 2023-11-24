@@ -1,12 +1,8 @@
-﻿using Microsoft.Extensions.Diagnostics.HealthChecks;
-using Newtonsoft.Json.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
-using static System.Net.WebRequestMethods;
+﻿using System.Text;
 
-namespace Model.sso
+namespace Model.SSO
 {
-    internal class SSOEndpoint:iSSOConfig
+    public class SSOEndpoint:ISSOConfig
     {
         public string Http { get; set; }
         public string AbsUrl { get; set; }
@@ -17,11 +13,8 @@ namespace Model.sso
 
         public SSOEndpoint() { }
 
-    
 
-       
-
-        internal static string GetRealm(string realmName)
+        public static string GetRealm(string realmName)
         {
             return string.Format("/auth/admin/realms/{0}", realmName);
 
@@ -30,7 +23,7 @@ namespace Model.sso
 
     internal static class SSOEndpointExtension
     {
-        internal static SSOEndpoint AsSSOEndpoint(this iSSOConfig ssoConfig)
+        internal static SSOEndpoint AsSSOEndpoint(this ISSOConfig ssoConfig)
         {
             SSOEndpoint ssoEndpoint = new SSOEndpoint();
             ssoEndpoint.Http = ssoConfig.Http;

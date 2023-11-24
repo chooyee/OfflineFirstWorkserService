@@ -9,12 +9,19 @@ using Model.sso;
 
 namespace Factory.Keycloak
 {
-    public static class RHSSOLib
+    public static class KeycloakApiFactory
     {
-        public static async Task<SSOToken> GetUserToken(string client_id, string username, SecureString userSecret)
-        {
-            SSOEndpoint ssoEndpoint = Global.GlobalConfig.Instance.SSOConfig.AsSSOEndpoint();
-
+        /// <summary>
+        /// GetUserToken - Login on behalf of user
+        /// </summary>
+        /// <param name="ssoEndpoint"></param>
+        /// <param name="client_id"></param>
+        /// <param name="username"></param>
+        /// <param name="userSecret"></param>
+        /// <returns>SSOToken</returns>
+        /// <exception cref="Exception"></exception>
+        public static async Task<SSOToken> GetUserToken(SSOEndpoint ssoEndpoint, string client_id, string username, SecureString userSecret)
+        {  
             string requestUri = ssoEndpoint.Http + "://" + ssoEndpoint.AbsUrl + ssoEndpoint.Auth;
             var param = new Dictionary<string, string>
             {
@@ -55,10 +62,16 @@ namespace Factory.Keycloak
             }
         }
 
-		public static async Task<SSOToken> GetUserAccessToken(string client_id, string refreshToken)
+        /// <summary>
+        /// GetUserAccessToken - use Refresh Token to get Access Token
+        /// </summary>
+        /// <param name="ssoEndpoint"></param>
+        /// <param name="client_id"></param>
+        /// <param name="refreshToken"></param>
+        /// <returns>SSOToken</returns>
+        /// <exception cref="Exception"></exception>
+		public static async Task<SSOToken> GetUserAccessToken(SSOEndpoint ssoEndpoint, string client_id, string refreshToken)
 		{
-            SSOEndpoint ssoEndpoint = Global.GlobalConfig.Instance.SSOConfig.AsSSOEndpoint();
-
             string requestUri = ssoEndpoint.Http + "://" + ssoEndpoint.AbsUrl + ssoEndpoint.Auth;
             var param = new Dictionary<string, string>
 			{
@@ -97,14 +110,18 @@ namespace Factory.Keycloak
                 }
 
 			}
-
-
 		}
 
-		public static async Task<SSOToken> GetServiceToken(string client_id, SecureString client_secret)
-        {
-            SSOEndpoint ssoEndpoint = Global.GlobalConfig.Instance.SSOConfig.AsSSOEndpoint();
-
+        /// <summary>
+        /// GetServiceToken - Get service token
+        /// </summary>
+        /// <param name="ssoEndpoint"></param>
+        /// <param name="client_id"></param>
+        /// <param name="client_secret"></param>
+        /// <returns>SSOToken</returns>
+        /// <exception cref="Exception"></exception>
+		public static async Task<SSOToken> GetServiceToken(SSOEndpoint ssoEndpoint, string client_id, SecureString client_secret)
+        {  
             string requestUri = ssoEndpoint.Http + "://" + ssoEndpoint.AbsUrl + ssoEndpoint.Auth;
 
 
@@ -151,10 +168,17 @@ namespace Factory.Keycloak
 
         }
 
-        public static async Task<JwtToken> Introspect(string client_id, SecureString client_secret, string accessToken)
-        {
-            SSOEndpoint ssoEndpoint = Global.GlobalConfig.Instance.SSOConfig.AsSSOEndpoint();
-
+        /// <summary>
+        /// Introspect - Check if token is valid
+        /// </summary>
+        /// <param name="ssoEndpoint"></param>
+        /// <param name="client_id"></param>
+        /// <param name="client_secret"></param>
+        /// <param name="accessToken"></param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
+        public static async Task<JwtToken> Introspect(SSOEndpoint ssoEndpoint, string client_id, SecureString client_secret, string accessToken)
+        {          
             string ssoCredentialStr = client_id + ":" + client_secret.ToCString();
             string authToken64 = "Basic " + Base64Encode(ssoCredentialStr);
 
@@ -198,10 +222,13 @@ namespace Factory.Keycloak
             }
         }
 
-        public static async Task<Tuple<bool,string>> HealthCheck()
+        /// <summary>
+        /// HealthCheck - Check is current RHSSO/Keycloak is up
+        /// </summary>
+        /// <param name="ssoEndpoint"></param>
+        /// <returns></returns>
+        public static async Task<Tuple<bool,string>> HealthCheck(SSOEndpoint ssoEndpoint)
         {
-            SSOEndpoint ssoEndpoint = Global.GlobalConfig.Instance.SSOConfig.AsSSOEndpoint();
-
             string url = ssoEndpoint.Http + "://" + ssoEndpoint.AbsUrl + ssoEndpoint.HealthCheck;
 
            

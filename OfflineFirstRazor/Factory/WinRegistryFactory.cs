@@ -53,7 +53,7 @@ namespace Factory
         {
             try
             {
-                // Set the value in the registry
+                Log.Debug("{funcName}: {serviceKeyName}", "DeleteKeyPath", serviceKeyName);
                 Registry.CurrentUser.DeleteSubKey(serviceKeyName);
                 return true;
             }
