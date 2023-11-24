@@ -6,7 +6,9 @@ namespace Factory
 {
     internal sealed class WinRegistryFactory : IDisposable
     {
-        const string keyPath = @"HKEY_CURRENT_USER\Software\Olif";
+        const string baseServiceRegistry = @"HKEY_CURRENT_USER";
+        const string serviceKeyName = @"Software\Olif";
+        const string keyPath = $@"{baseServiceRegistry}\{serviceKeyName}";
         private bool disposedValue;
 
         internal string GetValue(string keyName)
@@ -37,6 +39,22 @@ namespace Factory
             {
                 // Set the value in the registry
                 Registry.SetValue(keyPath, keyName, keyValue, RegistryValueKind.String);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                var funcName = string.Format("{0} : {1}", new StackFrame().GetMethod().DeclaringType.FullName, System.Reflection.MethodBase.GetCurrentMethod().Name);
+                Log.Error("{funcName}: {error}", funcName, ex.Message);
+                return false;
+            }
+        }
+
+        internal bool DeleteKeyPath()
+        {
+            try
+            {
+                // Set the value in the registry
+                Registry.CurrentUser.DeleteSubKey(serviceKeyName);
                 return true;
             }
             catch (Exception ex)

@@ -5,6 +5,8 @@ VisualStudioVersion = 17.7.34024.191
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OfflineFirstRazor", "OfflineFirstRazor\OfflineFirstRazor.csproj", "{ACE8779F-F3FA-44A7-AF8C-69B2CF6BB322}"
 EndProject
+Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "OlifSetup_v0.1", "OlifSetup_v0.1\OlifSetup_v0.1.vdproj", "{284065C5-8231-44E9-A93C-A68D62031071}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,8 @@ Global
 		{ACE8779F-F3FA-44A7-AF8C-69B2CF6BB322}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{ACE8779F-F3FA-44A7-AF8C-69B2CF6BB322}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{ACE8779F-F3FA-44A7-AF8C-69B2CF6BB322}.Release|Any CPU.Build.0 = Release|Any CPU
+		{284065C5-8231-44E9-A93C-A68D62031071}.Debug|Any CPU.ActiveCfg = Debug
+		{284065C5-8231-44E9-A93C-A68D62031071}.Release|Any CPU.ActiveCfg = Release
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

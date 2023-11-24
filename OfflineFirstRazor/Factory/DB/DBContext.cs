@@ -50,15 +50,11 @@ namespace Factory.DB
         public SQLiteFactory GetSQLiteDBInstance()
         {
             //Log.Debug("GetSQLiteDBInstance");
-            var sqlConn = GlobalEnv.Instance.SqliteConnectionString;
+            var sqlConn = Global.GlobalConfig.Instance.SqliteConnectionString;
             //Log.Debug(sqlConn);
             return new SQLiteFactory(sqlConn);
         }
 
-        //public MySqlFactory GetMYSQLDBInstance()
-        //{
-        //    return new MySqlFactory(GlobalEnvSqlConStr.Instance.MasterConnectionString);
-        //}
 
         public Task<object> ExecuteScalarAsync(string query, DynamicSqlParameter? param = null)
         {

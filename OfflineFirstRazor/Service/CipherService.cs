@@ -186,6 +186,13 @@ namespace Service
             if (GetSalt() == "") { RegisterSalt(); }
         }
 
+        internal static void UninstallKey()
+        {           
+            var cs = new CipherService();
+            cs.DeleteKey(container);
+            DeleteSalt();
+        }
+
         private static bool RegisterSalt()
         {
             using (RandomNumberGenerator rng = RandomNumberGenerator.Create())
@@ -216,6 +223,12 @@ namespace Service
         {
             var registry = new WinRegistryFactory();
             return registry.GetValue("sid");
+        }
+
+        protected static bool DeleteSalt()
+        {
+            var registry = new WinRegistryFactory();
+            return registry.DeleteKeyPath();
         }
 
         private static string Sha256(string input)

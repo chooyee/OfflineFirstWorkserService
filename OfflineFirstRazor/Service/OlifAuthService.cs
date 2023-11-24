@@ -166,7 +166,7 @@ namespace Service
                 ///Login to SSO if available 
                 if (loginSession.SSOHealthStatus)
                 {
-                    var ssoToken = await RHSSOLib.GetUserToken(GlobalEnv.Instance.UserClient.Client_id, loginSession.UserName, password);
+                    var ssoToken = await RHSSOLib.GetUserToken(Global.GlobalConfig.Instance.UserClient.Client_id, loginSession.UserName, password);
                     
                     Log.Debug("SSO  login successful!");
                     
@@ -242,7 +242,7 @@ namespace Service
                     
                     #endregion
 
-                    var ssoToken = await RHSSOLib.GetUserAccessToken(GlobalEnv.Instance.UserClient.Client_id, cipherService.DecryptLongString(encryptedRefreshToken));
+                    var ssoToken = await RHSSOLib.GetUserAccessToken(Global.GlobalConfig.Instance.UserClient.Client_id, cipherService.DecryptLongString(encryptedRefreshToken));
                     return Tuple.Create(ssoToken.AccessTokenSecureString(), ssoToken.ExpiresIn);
                 }
                 else

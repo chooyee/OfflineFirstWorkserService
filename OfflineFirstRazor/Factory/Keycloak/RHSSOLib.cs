@@ -5,6 +5,7 @@ using System.Net.Http.Headers;
 using System.Security;
 using Serilog;
 using System.Diagnostics;
+using Model.sso;
 
 namespace Factory.Keycloak
 {
@@ -12,10 +13,9 @@ namespace Factory.Keycloak
     {
         public static async Task<SSOToken> GetUserToken(string client_id, string username, SecureString userSecret)
         {
-			var ssoEndpoint = GlobalEnv.Instance.SSOEndpoint;
+            SSOEndpoint ssoEndpoint = Global.GlobalConfig.Instance.SSOConfig.AsSSOEndpoint();
 
-
-            string requestUri = ssoEndpoint.Http + "://" + ssoEndpoint.AbsUrl+ ssoEndpoint.Auth;
+            string requestUri = ssoEndpoint.Http + "://" + ssoEndpoint.AbsUrl + ssoEndpoint.Auth;
             var param = new Dictionary<string, string>
             {
                 { "client_id", client_id },
@@ -57,10 +57,10 @@ namespace Factory.Keycloak
 
 		public static async Task<SSOToken> GetUserAccessToken(string client_id, string refreshToken)
 		{
-			var ssoEndpoint = GlobalEnv.Instance.SSOEndpoint;
+            SSOEndpoint ssoEndpoint = Global.GlobalConfig.Instance.SSOConfig.AsSSOEndpoint();
 
-			string requestUri = ssoEndpoint.Http + "://" + ssoEndpoint.AbsUrl + ssoEndpoint.Auth;
-			var param = new Dictionary<string, string>
+            string requestUri = ssoEndpoint.Http + "://" + ssoEndpoint.AbsUrl + ssoEndpoint.Auth;
+            var param = new Dictionary<string, string>
 			{
 				{ "client_id", client_id },
 				{ "grant_type", "refresh_token" },
@@ -103,10 +103,10 @@ namespace Factory.Keycloak
 
 		public static async Task<SSOToken> GetServiceToken(string client_id, SecureString client_secret)
         {
-			var ssoEndpoint = GlobalEnv.Instance.SSOEndpoint;
+            SSOEndpoint ssoEndpoint = Global.GlobalConfig.Instance.SSOConfig.AsSSOEndpoint();
 
-			string url = ssoEndpoint.Http + "://" + ssoEndpoint.AbsUrl + ssoEndpoint.Auth;
-            
+            string requestUri = ssoEndpoint.Http + "://" + ssoEndpoint.AbsUrl + ssoEndpoint.Auth;
+
 
             string ssoCredentialStr = client_id + ":" + client_secret.ToCString();
             string authToken64 = "Basic " + Base64Encode(ssoCredentialStr);
@@ -129,7 +129,7 @@ namespace Factory.Keycloak
                 try
                 {
                     client.DefaultRequestHeaders.Add("Authorization", authToken64);
-                    HttpResponseMessage response = await client.PostAsync(url, formContent);
+                    HttpResponseMessage response = await client.PostAsync(requestUri, formContent);
 
                     if (response.IsSuccessStatusCode)
                     {
@@ -153,7 +153,8 @@ namespace Factory.Keycloak
 
         public static async Task<JwtToken> Introspect(string client_id, SecureString client_secret, string accessToken)
         {
-            var ssoEndpoint = GlobalEnv.Instance.SSOEndpoint;
+            SSOEndpoint ssoEndpoint = Global.GlobalConfig.Instance.SSOConfig.AsSSOEndpoint();
+
             string ssoCredentialStr = client_id + ":" + client_secret.ToCString();
             string authToken64 = "Basic " + Base64Encode(ssoCredentialStr);
 
@@ -199,7 +200,7 @@ namespace Factory.Keycloak
 
         public static async Task<Tuple<bool,string>> HealthCheck()
         {
-            var ssoEndpoint = GlobalEnv.Instance.SSOEndpoint;
+            SSOEndpoint ssoEndpoint = Global.GlobalConfig.Instance.SSOConfig.AsSSOEndpoint();
 
             string url = ssoEndpoint.Http + "://" + ssoEndpoint.AbsUrl + ssoEndpoint.HealthCheck;
 

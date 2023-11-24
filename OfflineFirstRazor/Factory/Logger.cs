@@ -11,15 +11,15 @@ namespace Factory
 
 
             var loggerConfig = new LoggerConfiguration();
-            if (GlobalEnv.Instance.LogLevel.Equals("debug", StringComparison.OrdinalIgnoreCase))
+            if (Global.GlobalConfig.Instance.LogLevel.Equals("debug", StringComparison.OrdinalIgnoreCase))
             {
                 loggerConfig.MinimumLevel.Debug();
             }
-            else if (GlobalEnv.Instance.LogLevel.Equals("information", StringComparison.OrdinalIgnoreCase))
+            else if (Global.GlobalConfig.Instance.LogLevel.Equals("information", StringComparison.OrdinalIgnoreCase))
             {
                 loggerConfig.MinimumLevel.Information();
             }
-            else if (GlobalEnv.Instance.LogLevel.Equals("warning", StringComparison.OrdinalIgnoreCase))
+            else if (Global.GlobalConfig.Instance.LogLevel.Equals("warning", StringComparison.OrdinalIgnoreCase))
             {
                 loggerConfig.MinimumLevel.Warning();
             }
