@@ -1,6 +1,6 @@
-﻿namespace Model.sso
+﻿namespace Model.SSO
 {
-    interface iSSOConfig
+    interface ISSOConfig
     {
         string Http { get; set; }
         string AbsUrl { get; set; }
