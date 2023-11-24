@@ -5,7 +5,7 @@ using System.Net.Http.Headers;
 using System.Security;
 using Serilog;
 using System.Diagnostics;
-using Model.sso;
+using Model.SSO;
 
 namespace Factory.Keycloak
 {

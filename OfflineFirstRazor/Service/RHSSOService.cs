@@ -1,7 +1,7 @@
 ﻿using Factory.Keycloak;
 using Factory.Keycloak.Model;
 using Global;
-using Model.sso;
+using Model.SSO;
 using System.Security;
 
 namespace Service
