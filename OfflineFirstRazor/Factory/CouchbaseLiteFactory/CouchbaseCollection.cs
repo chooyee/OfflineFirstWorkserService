@@ -1,4 +1,5 @@
 ﻿using Couchbase.Lite;
+using Serilog;
 using System.Diagnostics;
 using System.Reflection;
 

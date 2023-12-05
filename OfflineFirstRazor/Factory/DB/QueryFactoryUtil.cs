@@ -15,11 +15,11 @@
 
     public struct QueryOperator
     {
-        public string Equal => "=";
-        public string Greater => ">";
-        public string GreaterOrEqual => ">=";
-        public string Less => "<";
-        public string LessOrEqual => "<=";
-        public string Like => "like";
+        public static string Equal => "=";
+        public static string Greater => ">";
+        public static string GreaterOrEqual => ">=";
+        public static string Less => "<";
+        public static string LessOrEqual => "<=";
+        public static string Like => "like";
     }
 }

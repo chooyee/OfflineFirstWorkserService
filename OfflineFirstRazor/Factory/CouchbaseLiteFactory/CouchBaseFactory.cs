@@ -1,9 +1,5 @@
-﻿using Factory.DB;
-using Newtonsoft.Json;
-using Serilog;
+﻿using Serilog;
 using System.Diagnostics;
-using System.Reflection.Metadata;
-using Couchbase.Lite;
 using System.Reflection;
 
 
@@ -19,6 +15,9 @@ namespace Factory.CouchbaseLiteFactory
             try
             {
                 _database = GetDatabase(databaseName);
+                _collection = _database.GetCollection(CouchbaseDefault.Collection, CouchbaseDefault.Scope);
+                if (_collection == null)
+                    _collection = _database.CreateCollection(CouchbaseDefault.Collection, CouchbaseDefault.Scope);
             }
             catch (Exception ex)
             {

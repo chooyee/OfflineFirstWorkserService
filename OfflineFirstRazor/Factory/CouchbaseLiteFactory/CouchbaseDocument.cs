@@ -4,26 +4,53 @@ using Factory.DB;
 using Newtonsoft.Json;
 using System.Diagnostics;
 using Serilog;
-
+using System.Reflection;
 namespace Factory.CouchbaseLiteFactory
 {
     public class CouchbaseDocument:CouchbaseCollection
     {
+        public static string GetPrimaryKey<T>(T thisObj)
+        {
+            var documentID = "";
+            var primary = ReflectionFactory.GetMappableProperties(thisObj.GetType()).Where(x => x.GetCustomAttribute<SqlPrimaryKey>() != null);
+            if (!primary.Any()) primary = ReflectionFactory.GetMappableProperties(thisObj.GetType()).Where(x => x.GetCustomAttribute<DocumentIdAttribute>() != null);
+
+            if (primary.Any())
+            {
+                var primaryProp = primary.First();
+                documentID = primaryProp.GetValue(thisObj).ToString();
+            }
+            else
+            {
+                documentID = new CouchbaseObjectId().ToString();
+            }
+            return documentID;
+        }
+
         /// <summary>
-        /// SaveDocument
+        /// SaveDocument - Add or Update. If the object ID (documentid in couchbase) is empty it will save as new record
+        /// return original object with ID property
+        /// Use the T.ID property to retrieve back the document
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="obj"></param>
-        /// <returns>DocumentID</returns>
+        /// <typeparam name="T">Object Model</typeparam>
+        /// <param name="obj">Object</param>
+        /// <returns>Return saved object</returns>
         public T SaveDocument<T>(T obj)
         {
-            var documentID = new CouchbaseObjectId().ToString();
+            var modelAttribute = ReflectionFactory.GetModelAttribute(typeof(T), typeof(CollectionAttribute));
+
+            if (modelAttribute == null) throw new ArgumentException(nameof(T) + " is not a valid couchbase model!");
+
+            var documentID = GetPrimaryKey<T>(obj);
+
+            //Using reflection to get object property with [documentid]
+           
             var json = JsonConvert.SerializeObject(obj);
 
             try
             {
-                MutableDocument doc = new MutableDocument(documentID);
-                doc.SetJSON(json);
+                MutableDocument doc = new MutableDocument(documentID, json);
+                //doc.SetJSON(json);
                 if (!doc.Contains(CouchbaseObjectId.CouchbaseObjectIdColumnName))
                 {
                     doc.SetString(CouchbaseObjectId.CouchbaseObjectIdColumnName, documentID);
@@ -47,6 +74,7 @@ namespace Factory.CouchbaseLiteFactory
                 throw;
             }
         }
+
 
         /// <summary>
         /// SaveDocument
@@ -79,75 +107,44 @@ namespace Factory.CouchbaseLiteFactory
             }
         }
 
-        private List<Result> ExecuteQueryCollection(string queryStr, DynamicSqlParameter? sqlParam = null)
-        {
+
+        /// <summary>
+        /// GetDocuments - simple query helper
+        /// Query helper will select all and return full documents
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="condition">ConditionBuilder</param>
+        /// <param name="sortBuilder">SortBuilder</param>
+        /// <param name="limit">Limit</param>
+        /// <param name="offset">Offset</param>
+        /// <returns>List<Couchbase.Lite.Document></returns>
+        public List<Document> GetDocuments<T>(ConditionBuilder<T> condition, SortBuilder<T>? sortBuilder = null, int limit = 0, int offset = 0)
+        {            
+            var results = new List<Document>();
+
+            var queryStr = QueryHelper.BuildQuery<T>(_collection.Name, condition, sortBuilder, limit, offset);
+
+            var sqlParam = condition.SqlParams;
             try
             {
                 using var query = _database.CreateQuery(queryStr);
                 if (sqlParam != null) query.Parameters = sqlParam.CouchbaseParameters;
 
-                return query.Execute().AllResults();
+                foreach (var result in query.Execute())
+                {
+                    var dictObj = result.GetDictionary(_collection.Name);
+                    var docid = dictObj.GetString(CouchbaseObjectId.CouchbaseObjectIdColumnName);
+                    results.Add(_collection.GetDocument(docid.ToString()));
+                }
+                return results;
             }
             catch (Exception ex)
             {
                 var funcName = string.Format("{0} : {1}", new StackFrame().GetMethod().DeclaringType.FullName, System.Reflection.MethodBase.GetCurrentMethod().Name);
                 Log.Error("{funcName}:{ex}", funcName, ex.Message);
                 Log.Error("Query: {queryStr}", queryStr);
-                Log.Error("Param: {param}", sqlParam.GetAsString());
-                throw;
-            }
-        }
-
-        private DictionaryObject? QueryDocument(string queryStr, DynamicSqlParameter? sqlParam = null)
-        {
-            try
-            {
-                var results = ExecuteQueryCollection(queryStr, sqlParam);
-                if (results != null && results.Any())
-                {
-                    return results.First().GetDictionary(_collection.Name);
-                }
-                else
-                {
-                    return default;
-                }
-
-            }
-            catch (Exception ex)
-            {
-                var funcName = string.Format("{0} : {1}", new StackFrame().GetMethod().DeclaringType.FullName, System.Reflection.MethodBase.GetCurrentMethod().Name);
-                Log.Error("{funcName}:{ex}", funcName, ex.Message);
-                throw;
-            }
-        }
-
-        /// <summary>
-        /// GetDocument - return as couchbase document object
-        /// </summary>
-        /// <param name="queryStr"></param>
-        /// <param name="sqlParam"></param>
-        /// <returns>Couchbase Document</returns>
-        public Document? GetDocument(string queryStr, DynamicSqlParameter? sqlParam = null)
-        {
-            try
-            {
-                var results = ExecuteQueryCollection(queryStr, sqlParam);
-                if (results != null && results.Any())
-                {
-                    var firstDoc = results.FirstOrDefault();
-                    var docId = firstDoc.GetString(CouchbaseObjectId.CouchbaseObjectIdColumnName);
-                    return _collection.GetDocument(docId.ToString());
-                }
-                else
-                {
-                    return null;
-                }
-
-            }
-            catch (Exception ex)
-            {
-                var funcName = string.Format("{0} : {1}", new StackFrame().GetMethod().DeclaringType.FullName, System.Reflection.MethodBase.GetCurrentMethod().Name);
-                Log.Error("{funcName}:{ex}", funcName, ex.Message);
+                if (sqlParam!=null)
+                    Log.Error("Param: {param}", sqlParam.GetAsString());
                 throw;
             }
         }
@@ -173,113 +170,27 @@ namespace Factory.CouchbaseLiteFactory
 
 
         /// <summary>
-        /// GetDocument - return document as single object
+        /// QueryCollection - Select documents from the collection
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="queryStr"></param>
-        /// <param name="sqlParam"></param>
-        /// <returns></returns>
-        public T? GetDocument<T>(string queryStr, DynamicSqlParameter? sqlParam = null)
-        {
-           
-            try
-            {
-                var doc = QueryDocument(queryStr, sqlParam);
-
-                if (doc != null)
-                {
-                    return JsonConvert.DeserializeObject<T>(doc.ToJSON());
-                }
-                else {
-                    return default;
-                }
-
-            }
-            catch (Exception ex)
-            {
-                var funcName = string.Format("{0} : {1}", new StackFrame().GetMethod().DeclaringType.FullName, System.Reflection.MethodBase.GetCurrentMethod().Name);
-                Log.Error("{funcName}:{ex}", funcName, ex.Message);
-                throw;
-            }
-        }
-
-        /// <summary>
-        /// GetDocument - Search collection, return as dictionary
-        /// </summary>
-        /// <param name="queryStr"></param>
-        /// <param name="sqlParam"></param>
-        /// <returns>Dictionary<string, object></returns>
-        public Dictionary<string, object>? GetDocumentAsDict(string queryStr, DynamicSqlParameter? sqlParam = null)
-        {
-            try
-            {
-                var doc = QueryDocument(queryStr, sqlParam);
-
-                if (doc != null)
-                {
-                    return doc.ToDictionary();
-                }
-                else
-                {
-                    return null;
-                }
-            }
-            catch (Exception ex)
-            {
-                var funcName = string.Format("{0} : {1}", new StackFrame().GetMethod().DeclaringType.FullName, System.Reflection.MethodBase.GetCurrentMethod().Name);
-                Log.Error("{funcName}:{ex}", funcName, ex.Message);
-                throw;
-            }
-        }
-
-        /// <summary>
-        /// GetDocument - Search collection, return as Json
-        /// </summary>
-        /// <param name="queryStr"></param>
-        /// <param name="sqlParam"></param>
-        /// <returns>string (Json)</returns>
-        public string? GetDocumentAsJson(string queryStr, DynamicSqlParameter? sqlParam = null)
-        {
-            try
-            {
-                var doc = QueryDocument(queryStr, sqlParam);
-
-                if (doc != null)
-                {
-                    return doc.ToJSON();
-                }
-                else
-                {
-                    return null;
-                }
-            }
-            catch (Exception ex)
-            {
-                var funcName = string.Format("{0} : {1}", new StackFrame().GetMethod().DeclaringType.FullName, System.Reflection.MethodBase.GetCurrentMethod().Name);
-                Log.Error("{funcName}:{ex}", funcName, ex.Message);
-                throw;
-            }
-        }
-
-
-        /// <summary>
-        /// QueryCollection
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="queryStr"></param>
-        /// <param name="sqlParam"></param>
+        /// <param name="queryStr">string</param>
+        /// <param name="sqlParam">DynamicSqlParameter</param>
         /// <returns>IEnumerable<T></returns>
         public IEnumerable<T> QueryCollection<T>(string queryStr, DynamicSqlParameter? sqlParam = null)
         {
             var returnResult = new List<T>();
             try
             {
-                var allResults = ExecuteQueryCollection(queryStr, sqlParam);
+                using var query = _database.CreateQuery(queryStr);
+                if (sqlParam != null) query.Parameters = sqlParam.CouchbaseParameters;
 
-                foreach (var result in allResults)
+                foreach (var result in query.Execute())
                 {
                     //get as readonly dictionary object
-                    var dicObj = result.GetDictionary(_collection.Name);
+                    dynamic dicObj = result.GetDictionary(_collection.Name);
+                    if (dicObj == null) 
+                        dicObj = result;
+
                     //Export the dict object to json and deserialize to model
                     //store into return result
                     returnResult.Add(JsonConvert.DeserializeObject<T>(dicObj.ToJSON()));
@@ -290,6 +201,9 @@ namespace Factory.CouchbaseLiteFactory
             {
                 var funcName = string.Format("{0} : {1}", new StackFrame().GetMethod().DeclaringType.FullName, System.Reflection.MethodBase.GetCurrentMethod().Name);
                 Log.Error("{funcName}:{ex}", funcName, ex.Message);
+                Log.Error("Query: {queryStr}", queryStr);
+                if (sqlParam != null)
+                    Log.Error("Param: {param}", sqlParam.GetAsString());
                 throw;
             }
         }
@@ -297,29 +211,40 @@ namespace Factory.CouchbaseLiteFactory
         /// <summary>
         /// QueryCollection
         /// </summary>
-        /// <param name="queryStr"></param>
-        /// <param name="sqlParam"></param>
-        /// <returns>List<Dictionary<string, object>></returns>
-        public List<Dictionary<string, object>> QueryCollection(string queryStr, DynamicSqlParameter? sqlParam = null)
+        /// <param name="queryStr">string</param>
+        /// <param name="sqlParam">DynamicSqlParameter</param>
+        /// <param name="returnType">To indicate return as Dictionary or Json string</param>
+        /// <returns>List<Dictionary<string, object>> | json string</returns>
+        public dynamic QueryCollection(string queryStr, DynamicSqlParameter? sqlParam = null, QueryResultReturnType returnType = QueryResultReturnType.Dictionary)
         {
-            var returnResult = new List<Dictionary<string, object>>();
+            var queryResult = new List<Dictionary<string, object>>();
             try
             {
-                var allResults = ExecuteQueryCollection(queryStr, sqlParam);
+                using var query = _database.CreateQuery(queryStr);
+                if (sqlParam != null) query.Parameters = sqlParam.CouchbaseParameters;
 
-                foreach (var result in allResults)
+                foreach (var result in query.Execute())
                 {
                     //get as readonly dictionary object
-                    var dicObj = result.GetDictionary(_collection.Name);
+                    dynamic dicObj = result.GetDictionary(_collection.Name);
+                    if (dicObj == null)
+                        dicObj = result;
+
                     //Export to dictionary and store into return result
-                    returnResult.Add(dicObj.ToDictionary());
+                    queryResult.Add(dicObj.ToDictionary());
                 }
-                return returnResult;
+                if (returnType == QueryResultReturnType.Dictionary)
+                    return queryResult;
+                else
+                    return JsonConvert.SerializeObject(queryResult);
             }
             catch (Exception ex)
             {
                 var funcName = string.Format("{0} : {1}", new StackFrame().GetMethod().DeclaringType.FullName, System.Reflection.MethodBase.GetCurrentMethod().Name);
                 Log.Error("{funcName}:{ex}", funcName, ex.Message);
+                Log.Error("Query: {queryStr}", queryStr);
+                if (sqlParam != null)
+                    Log.Error("Param: {param}", sqlParam.GetAsString());
                 throw;
             }
         }
@@ -334,10 +259,22 @@ namespace Factory.CouchbaseLiteFactory
         /// DeleteDocument - to delete document, first you need to get couchbase document. Then pass the document id to this function
         /// </summary>
         /// <param name="documentID">document id</param>
-        public void DeleteDocument(string documentID)
+        public bool DeleteDocument(string documentID)
         {
-            var document = _collection.GetDocument(documentID);
-            _collection.Delete(document);
+            try
+            {
+                var document = _collection.GetDocument(documentID);
+                _collection.Delete(document);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                var funcName = string.Format("{0} : {1}", new StackFrame().GetMethod().DeclaringType.FullName, System.Reflection.MethodBase.GetCurrentMethod().Name);
+                Log.Error("{funcName}:{ex}", funcName, ex.Message);
+                Log.Error("documentID: {documentID}", documentID);
+               
+                throw;
+            }
         }
 
     }

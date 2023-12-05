@@ -44,7 +44,7 @@ namespace Factory.DB.Model
             return $"{ParamName} {GetOperator(Operator)} {ParamPlaceholder}";
         }
 
-        public string GetOperator(QueryOperator op)
+        public static string GetOperator(QueryOperator op)
         {
             var opStr = "=";
             switch (op)

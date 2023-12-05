@@ -1,6 +1,7 @@
 ﻿using Factory.DB;
 using System.Reflection;
 using System.Diagnostics;
+using System;
 
 namespace Factory
 {
@@ -34,6 +35,13 @@ namespace Factory
             var attribute = (SqlTableAttribute)Attribute.GetCustomAttribute(t, typeof(SqlTableAttribute));
             if (attribute != null) return attribute.PropertyName;
             else return String.Empty;
+        }
+
+        internal static Attribute GetModelAttribute(Type t, Type attributeType)
+        {
+            var attribute = Attribute.GetCustomAttribute(t, attributeType);
+            if (attribute != null) return attribute;
+            else return null;
         }
 
         internal static string GetTypeName(Type type)

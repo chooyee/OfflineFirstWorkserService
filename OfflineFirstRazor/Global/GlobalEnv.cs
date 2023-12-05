@@ -1,4 +1,5 @@
 ﻿using Extension;
+using Model;
 using Model.SSO;
 
 namespace Global
@@ -24,7 +25,7 @@ namespace Global
         private readonly string _sqliteDatabaseName;
         private readonly string _sqliteConStr;
         private readonly string _logLevel;
-
+        private readonly CouchbaseConfigModel _couchbaseConfig;
 
         public GlobalConfig()
         {
@@ -48,9 +49,8 @@ namespace Global
             _userClient.Client_id = configuration.GetValue($"sso:{env}:UserId:Client_id", "admin-cli");
 
             _serviceClient = configuration.GetSection($"sso:{env}:ServiceId").Get<SSOCredential>();
-            //_serviceClient = new SSOCredential();
-            //_serviceClient.Client_id = configuration.GetValue($"sso:{env}:ServiceId:Client_id", "projectowl");
-            //_serviceClient.Client_secret = configuration.GetValue($"sso:{env}:ServiceId:Client_secret","").ToSecureString();
+
+            _couchbaseConfig = configuration.GetSection($"couchbase:{env}").Get<CouchbaseConfigModel>();
         }
 
         public SSOConfig SSOConfig { get { return _ssoConfig; } }
@@ -61,7 +61,7 @@ namespace Global
         public SSOCredential ServiceClient { get { return _serviceClient; } }
         public string SqliteConnectionString { get { return _sqliteConStr; } }
         public string SqliteDatabaseName { get { return _sqliteDatabaseName; } }
-
+        public CouchbaseConfigModel CouchbaseConfig { get { return _couchbaseConfig; } }
         public string LogLevel => _logLevel;
 
     }

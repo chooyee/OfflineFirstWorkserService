@@ -8,6 +8,7 @@ using Serilog;
 using System.Diagnostics;
 using System.Security;
 using System.Runtime.Versioning;
+using Factory.CouchbaseLiteFactory.Model;
 
 namespace Service
 {
@@ -85,7 +86,7 @@ namespace Service
                 #region return success
                 loginSession.DeviceIdCheck = true;
                 await ClearSessions(loginSession);
-                await loginSession.Save();
+                loginSession.Save();
 
                 return Tuple.Create(authResult, "success", loginSession);
                 #endregion
@@ -96,7 +97,7 @@ namespace Service
 
                 Log.Error("{funcName}: {error}", funcName, ex.Message);
                 await ClearSessions(loginSession);
-                await loginSession.Save();
+                loginSession.Save();
                 
                 return Tuple.Create(false, ex.Message, loginSession);
             }
@@ -118,7 +119,7 @@ namespace Service
 
                     if (await GetTrustedClient(jwtToken.client_id))
                     {
-                        if (!await loginSession.Load())
+                        if (!await loginSession.Load(sid))
                         {
                             throw new Exception("Login session expired!");
                         }
@@ -224,9 +225,8 @@ namespace Service
                 var cipherService = CipherService.GetCipherService(loginSession);
 
                 var userSSO = new ModTableSSOUser(loginSession.UserName);
-                if (await userSSO.Load())
-                {
-                    
+                if (await userSSO.Load(loginSession.UserName))
+                {                    
                     if (DateTime.Now >= DateTime.Parse(userSSO.RefreshTokenExpireDate))
                     {
                         throw new Exception("Refresh token expired! Please connect to VPN and login again");
@@ -345,7 +345,7 @@ namespace Service
                     ClientId = clientId
                 };
 
-                return await client.Load();
+                return await client.Load(clientId);
             }
             catch (Exception ex)
             {

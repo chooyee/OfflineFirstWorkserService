@@ -1,15 +1,14 @@
-﻿
-using Model;
-using System.Security;
+﻿using Factory.CouchbaseLiteFactory;
+using Factory.CouchbaseLiteFactory.Model;
 
 namespace Factory.DB.Model
 {
-    [SqlTable("tbl_sso")]
-    public class ModTableSSOUser : IDBObjectBase
+    [Collection("tbl_sso")]
+    public class ModTableSSOUser : CouchbaseObjectModelBase
     {
 
-        [SqlProperty("id", DataType.INT)]
-        public int Id { get; set; }
+        //[SqlProperty("id", DataType.INT)]
+        //public int Id { get; set; }
 
         [SqlPrimaryKey]
         [SqlProperty("username", DataType.TEXT)]
@@ -33,6 +32,7 @@ namespace Factory.DB.Model
 
         public ModTableSSOUser(string username)
         {
+            ID = username;
             UserName = username;
             LogDate = string.Format("{0:yyyy-MM-dd HH:mm:ss}", DateTime.Now);
         }
@@ -63,13 +63,13 @@ namespace Factory.DB.Model
     }
 
 
-    [SqlTable("tbl_audit_log")]
-    public class ModTableAuditLog: IDBObjectBase
+    [Collection("tbl_audit_log")]
+    public class ModTableAuditLog: CouchbaseObjectModelBase
     {
-        [SqlPrimaryKey]
-        [SqlAutoIncrement]
-        [SqlProperty("id", DataType.INT)]
-        public int Id { get; set; }
+        //[SqlPrimaryKey]
+        //[SqlAutoIncrement]
+        //[SqlProperty("id", DataType.INT)]
+        //public int Id { get; set; }
 
         [SqlProperty("username", DataType.TEXT)]
         public string? UserName { get; set; }
@@ -97,13 +97,13 @@ namespace Factory.DB.Model
 
     }
 
-    [SqlTable("tbl_machine_log")]
-    public class ModTableMachineLog: IDBObjectBase
+    [Collection("tbl_machine_log")]
+    public class ModTableMachineLog: CouchbaseObjectModelBase
     {
-        [SqlPrimaryKey]
-        [SqlAutoIncrement]
-        [SqlProperty("id", DataType.INT)]
-        public int Id { get; set; }
+        //[SqlPrimaryKey]
+        //[SqlAutoIncrement]
+        //[SqlProperty("id", DataType.INT)]
+        //public int Id { get; set; }
 
 
         [SqlProperty("fingerprint", DataType.TEXT)]
@@ -125,11 +125,11 @@ namespace Factory.DB.Model
 
     }
 
-    [SqlTable("tbl_userlogin_log")]
-    public class UserLoginLog:IDBObjectBase
+    [Collection("tbl_userlogin_log")]
+    public class UserLoginLog: CouchbaseObjectModelBase
     {
-        [SqlProperty("id", DataType.INT)]
-        public int Id { get; set; }
+        //[SqlProperty("id", DataType.INT)]
+        //public int Id { get; set; }
 
         [SqlPrimaryKey]
         [SqlProperty("sid", DataType.TEXT)]
@@ -162,11 +162,11 @@ namespace Factory.DB.Model
     }
 
 
-    [SqlTable("tbl_trusted_client")]
-    public class TrustedClient : IDBObjectBase
+    [Collection("tbl_trusted_client")]
+    public class TrustedClient : CouchbaseObjectModelBase
     {
-        [SqlProperty("id", DataType.INT)]
-        public int Id { get; set; }
+        //[SqlProperty("id", DataType.INT)]
+        //public int Id { get; set; }
 
         [SqlPrimaryKey]
         [SqlProperty("client_id", DataType.TEXT)]

@@ -1,4 +1,5 @@
-﻿using Factory.DB.Model;
+﻿using Factory.CouchbaseLiteFactory.Model;
+using Factory.DB.Model;
 using Serilog;
 using System.Reflection.Metadata.Ecma335;
 
@@ -11,10 +12,10 @@ namespace Factory.DB.Init
             try
             {
                 //Create database - required for prod
-                using (var dbContext = new DBContext())
-                {
-                    _ = dbContext.CreateDatabaseAsync("Olif").Result;
-                }
+                //using (var dbContext = new DBContext())
+                //{
+                //    _ = dbContext.CreateDatabaseAsync("Olif").Result;
+                //}
             }
             catch (Exception ex)
             {
@@ -29,20 +30,20 @@ namespace Factory.DB.Init
                 {
 
                     var result = new List<Task>();
-                    var query = dbContext.QueryFactory.CreateTable(typeof(ModTableSSOUser));
-                    result.Add(dbContext.ExecuteNonQueryAsync(query));
+                    //var query = dbContext.QueryFactory.CreateTable(typeof(ModTableSSOUser_sqlite));
+                    //result.Add(dbContext.ExecuteNonQueryAsync(query));
 
-                    query = dbContext.QueryFactory.CreateTable(typeof(ModTableAuditLog));
-                    result.Add(dbContext.ExecuteNonQueryAsync(query));
+                    //query = dbContext.QueryFactory.CreateTable(typeof(ModTableAuditLog));
+                    //result.Add(dbContext.ExecuteNonQueryAsync(query));
 
-                    query = dbContext.QueryFactory.CreateTable(typeof(ModTableMachineLog));
-                    result.Add(dbContext.ExecuteNonQueryAsync(query));
+                    //query = dbContext.QueryFactory.CreateTable(typeof(ModTableMachineLog));
+                    //result.Add(dbContext.ExecuteNonQueryAsync(query));
 
-                    query = dbContext.QueryFactory.CreateTable(typeof(UserLoginLog));
-                    result.Add(dbContext.ExecuteNonQueryAsync(query));
+                    //query = dbContext.QueryFactory.CreateTable(typeof(UserLoginLog));
+                    //result.Add(dbContext.ExecuteNonQueryAsync(query));
 
-                    query = dbContext.QueryFactory.CreateTable(typeof(TrustedClient));
-                    result.Add(dbContext.ExecuteNonQueryAsync(query));
+                    //query = dbContext.QueryFactory.CreateTable(typeof(TrustedClient));
+                    //result.Add(dbContext.ExecuteNonQueryAsync(query));
 
 
                     var trustedClient = new TrustedClient()
@@ -51,7 +52,7 @@ namespace Factory.DB.Init
                         ClientName = "Olif",
                     };
 
-                    result.Add(trustedClient.Save());
+                    result.Add(Task.Run(()=>trustedClient.Save()));
                     
 
                     trustedClient = new TrustedClient()
@@ -60,7 +61,7 @@ namespace Factory.DB.Init
                         ClientName = "WMS",
                     };
 
-                    result.Add(trustedClient.Save());
+                    result.Add(Task.Run(()=>trustedClient.Save()));
                    
                     Task.WaitAll(result.ToArray());
 

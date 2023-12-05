@@ -1,5 +1,4 @@
 ﻿using Factory.DB.Model;
-using Model;
 using Serilog;
 using System.Reflection;
 
