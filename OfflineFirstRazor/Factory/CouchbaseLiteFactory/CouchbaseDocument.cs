@@ -5,26 +5,82 @@ using Newtonsoft.Json;
 using System.Diagnostics;
 using Serilog;
 using System.Reflection;
+using Document = Couchbase.Lite.Document;
+using Newtonsoft.Json.Linq;
+
 namespace Factory.CouchbaseLiteFactory
 {
     public class CouchbaseDocument:CouchbaseCollection
     {
-        public static string GetPrimaryKey<T>(T thisObj)
-        {
-            var documentID = "";
-            var primary = ReflectionFactory.GetMappableProperties(thisObj.GetType()).Where(x => x.GetCustomAttribute<SqlPrimaryKey>() != null);
-            if (!primary.Any()) primary = ReflectionFactory.GetMappableProperties(thisObj.GetType()).Where(x => x.GetCustomAttribute<DocumentIdAttribute>() != null);
+        public class PrimaryKey
+        { 
+            public string Name { get; set;  }
+            public string Value { get; set; }
+        }
 
-            if (primary.Any())
+        private static PrimaryKey? GetKey(dynamic thisObj, IEnumerable<PropertyInfo> propInfos)
+        {
+            if (propInfos.Any())
             {
-                var primaryProp = primary.First();
-                documentID = primaryProp.GetValue(thisObj).ToString();
+                var primaryProp = propInfos.First();
+                var pValue = primaryProp.GetValue(thisObj);
+                if (pValue == null)
+                {
+                    return null;
+                }
+                else
+                {
+                    return new PrimaryKey()
+                    {
+                        Name = primaryProp.Name,
+                        Value = primaryProp.GetValue(thisObj).ToString()
+                    };
+                }
             }
-            else
+            else { return null; }
+        }
+        public static PrimaryKey GetPrimaryKey<T>(T thisObj)
+        {
+            Console.WriteLine(thisObj.GetType());
+            PrimaryKey primaryKey;
+            
+            //Prioritise SQLPrimary as primary key
+            var propInfos = ReflectionFactory.GetMappableProperties(thisObj.GetType()).Where(x => x.GetCustomAttribute<SqlPrimaryKey>() != null);
+            primaryKey = GetKey(thisObj, propInfos);
+            //If no [sqlprimary] key found, check is DocumentIdAttribute exists
+            if (primaryKey == null)
             {
-                documentID = new CouchbaseObjectId().ToString();
+                propInfos = ReflectionFactory.GetMappableProperties(thisObj.GetType()).Where(x => x.GetCustomAttribute<DocumentIdAttribute>() != null);
+                primaryKey = GetKey(thisObj, propInfos);
             }
-            return documentID;
+            
+            if (primaryKey == null && thisObj is JObject)
+            {
+                var jsonObj = thisObj as JObject;
+                var jpropInfos = jsonObj.Properties().Where(x=>x.Name.Equals(CouchbaseObjectId.CouchbaseObjectIdColumnName, StringComparison.OrdinalIgnoreCase));
+                if (jpropInfos.Any())
+                {
+                    var primeJProp = jpropInfos.First();
+                    primaryKey = new PrimaryKey()
+                    {
+                        Name = CouchbaseObjectId.CouchbaseObjectIdColumnName,
+                        Value = primeJProp.Value.ToString()
+                    };
+                }
+            }
+
+            if (primaryKey == null)
+            {
+                // use default
+                primaryKey = new PrimaryKey()
+                {
+                    Name = CouchbaseObjectId.CouchbaseObjectIdColumnName,
+                    Value = new CouchbaseObjectId().ToString()
+                };
+              
+            }
+
+            return primaryKey;
         }
 
         /// <summary>
@@ -35,35 +91,25 @@ namespace Factory.CouchbaseLiteFactory
         /// <typeparam name="T">Object Model</typeparam>
         /// <param name="obj">Object</param>
         /// <returns>Return saved object</returns>
-        public T SaveDocument<T>(T obj)
+        public string SaveDocument<T>(T obj)
         {
-            var modelAttribute = ReflectionFactory.GetModelAttribute(typeof(T), typeof(CollectionAttribute));
+            var primaryKey = GetPrimaryKey<T>(obj);
 
-            if (modelAttribute == null) throw new ArgumentException(nameof(T) + " is not a valid couchbase model!");
+            if (primaryKey ==null) throw new ArgumentException(obj.GetType().Name + " is not a valid couchbase model! No primary key/document id exist.");
 
-            var documentID = GetPrimaryKey<T>(obj);
-
-            //Using reflection to get object property with [documentid]
            
             var json = JsonConvert.SerializeObject(obj);
 
             try
             {
-                MutableDocument doc = new MutableDocument(documentID, json);
-                //doc.SetJSON(json);
-                if (!doc.Contains(CouchbaseObjectId.CouchbaseObjectIdColumnName))
-                {
-                    doc.SetString(CouchbaseObjectId.CouchbaseObjectIdColumnName, documentID);
-                }
-                else if (string.IsNullOrEmpty(doc.GetString(CouchbaseObjectId.CouchbaseObjectIdColumnName)))
-                {
-                    doc.SetString(CouchbaseObjectId.CouchbaseObjectIdColumnName, documentID);
-                }
+                MutableDocument doc = new MutableDocument(primaryKey.Value, json);
+                doc.SetString(CouchbaseObjectId.CouchbaseObjectIdColumnName, primaryKey.Value);
 
                 _collection.Save(doc);
 
-                var jsonFinal = JsonConvert.SerializeObject(doc);
-                return JsonConvert.DeserializeObject<T>(jsonFinal);
+                return primaryKey.Value;
+                //var jsonFinal = JsonConvert.SerializeObject(doc);
+                //return JsonConvert.DeserializeObject<T>(jsonFinal);
 
             }
             catch (Exception ex)
@@ -75,6 +121,35 @@ namespace Factory.CouchbaseLiteFactory
             }
         }
 
+        public string SaveDocument(string jsonDoc)
+        {
+            var docObj = JsonConvert.DeserializeObject(jsonDoc);
+            
+            var primaryKey = GetPrimaryKey(docObj);
+
+            if (primaryKey == null) throw new ArgumentException(docObj.GetType().Name + " is not a valid couchbase model! No primary key/document id exist.");
+
+
+            try
+            {
+                MutableDocument doc = new MutableDocument(primaryKey.Value, jsonDoc);
+                doc.SetString(CouchbaseObjectId.CouchbaseObjectIdColumnName, primaryKey.Value);
+
+                _collection.Save(doc);
+
+                return primaryKey.Value;
+                //var jsonFinal = JsonConvert.SerializeObject(doc);
+                //return JsonConvert.DeserializeObject<T>(jsonFinal);
+
+            }
+            catch (Exception ex)
+            {
+                var funcName = string.Format("{0} : {1}", new StackFrame().GetMethod().DeclaringType.FullName, System.Reflection.MethodBase.GetCurrentMethod().Name);
+                Log.Error("{funcName}:{ex}", funcName, ex.Message);
+                Log.Error("{json}", jsonDoc);
+                throw;
+            }
+        }
 
         /// <summary>
         /// SaveDocument
@@ -83,15 +158,15 @@ namespace Factory.CouchbaseLiteFactory
         /// <param name="documentID"></param>
         /// <param name="obj"></param>
         /// <returns></returns>
-        public T SaveDocument<T>(string documentID, T obj)
+        public T SaveDocument<T>(string primaryKeyValue, T obj)
         {
             var json = JsonConvert.SerializeObject(obj);
 
             try
             {
-                MutableDocument doc = new MutableDocument(documentID, json);
+                MutableDocument doc = new MutableDocument(primaryKeyValue, json);
 
-                doc.SetString(CouchbaseObjectId.CouchbaseObjectIdColumnName, documentID);
+                doc.SetString(CouchbaseObjectId.CouchbaseObjectIdColumnName, primaryKeyValue);
 
                 _collection.Save(doc);
                 var jsonFinal = doc.ToJSON();
@@ -101,7 +176,7 @@ namespace Factory.CouchbaseLiteFactory
             catch (Exception ex)
             {
                 var funcName = string.Format("{0} : {1}", new StackFrame().GetMethod().DeclaringType.FullName, System.Reflection.MethodBase.GetCurrentMethod().Name);
-                Log.Error("{funcName}:{documentID}:{ex}", funcName, documentID, ex.Message);
+                Log.Error("{funcName}:{documentID}:{ex}", funcName, primaryKeyValue, ex.Message);
                 Log.Error("{json}", json);
                 throw;
             }
@@ -154,16 +229,16 @@ namespace Factory.CouchbaseLiteFactory
         /// </summary>
         /// <param name="documentID"></param>
         /// <returns>Couchbase Document</returns>
-        public Document GetDocumentById(string documentID)
+        public Document GetDocumentById(string primaryKeyValue)
         {
             try
             {
-                return _collection.GetDocument(documentID);
+                return _collection.GetDocument(primaryKeyValue);
             }
             catch (Exception ex)
             {
                 var funcName = string.Format("{0} : {1}", new StackFrame().GetMethod().DeclaringType.FullName, System.Reflection.MethodBase.GetCurrentMethod().Name);
-                Log.Error("{funcName}:{documentID}:{ex}", funcName, documentID, ex.Message);
+                Log.Error("{funcName}:{documentID}:{ex}", funcName, primaryKeyValue, ex.Message);
                 throw;
             }
         }
@@ -214,8 +289,8 @@ namespace Factory.CouchbaseLiteFactory
         /// <param name="queryStr">string</param>
         /// <param name="sqlParam">DynamicSqlParameter</param>
         /// <param name="returnType">To indicate return as Dictionary or Json string</param>
-        /// <returns>List<Dictionary<string, object>> | json string</returns>
-        public dynamic QueryCollection(string queryStr, DynamicSqlParameter? sqlParam = null, QueryResultReturnType returnType = QueryResultReturnType.Dictionary)
+        /// <returns>Default return type is JSON string</returns>
+        public dynamic QueryCollection(string queryStr, DynamicSqlParameter? sqlParam = null, QueryResultReturnType returnType = QueryResultReturnType.JSON)
         {
             var queryResult = new List<Dictionary<string, object>>();
             try
@@ -255,6 +330,8 @@ namespace Factory.CouchbaseLiteFactory
             _collection.CreateIndex(indexName, config);
         }
 
+
+    
         /// <summary>
         /// DeleteDocument - to delete document, first you need to get couchbase document. Then pass the document id to this function
         /// </summary>

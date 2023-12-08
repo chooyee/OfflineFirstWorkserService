@@ -1,5 +1,4 @@
-﻿using Factory.CouchbaseLiteFactory;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Service;
 
 namespace WebApi.Controllers
@@ -8,12 +7,12 @@ namespace WebApi.Controllers
     [ApiController]
     public class CouchbaseTestController : ControllerBase
     {
-        [HttpPost, Route("/set")]
-        public ActionResult<string> SetDocument(TestModel test)
+        [HttpPost, Route("/set/{collectionName}")]
+        public ActionResult<string> SetDocument(string collectionName, string jsonDoc)
         {
-            var db = new CouchbaseService();
+            var db = new CouchbaseService(collectionName);
 
-            return db.Test_SaveDoc(test);
+            return db.Save(jsonDoc);
 
         }
 
@@ -29,29 +28,30 @@ namespace WebApi.Controllers
 
         }
 
-        [HttpGet, Route("/get/id/{id}")]
-        public ActionResult<string> GetDocumentById(string id)
+        [HttpGet, Route("/collection/{collectionName}/id/{id}")]
+        public ActionResult<string> GetDocumentById(string collectionName, string id)
         {
             using var db = new CouchbaseService();
-            var test  = db.Load<TestModel>(id);
-            return new JsonResult(test);
+            var test  = db.LoadDocumentAsJson(collectionName, id);
+            return test;
         }
 
-        [HttpGet, Route("/get/json")]
-        public ActionResult<string> GetDocumentAsJson()
+        [HttpGet, Route("/collection/name/all")]
+        public ActionResult<string> GetAllCollections()
         {
-            var db = new CouchbaseService();
-
-            return new JsonResult(db.Test_GeQueryDoc());
+            using var db = new CouchbaseService();
+            var result = db.GetAllCollections();
+            return new JsonResult(result);
 
         }
 
-        [HttpGet, Route("/get/collection")]
-        public ActionResult<string> GetCollection()
-        {
-            var db = new CouchbaseService();
 
-            return new JsonResult(db.Test_GetCollection());
+        [HttpGet, Route("/collection/{name}")]
+        public ActionResult<string> GetCollection(string name)
+        {
+            using var db = new CouchbaseService();
+            var result = db.Search($"select * from {name}");
+            return result;
 
         }
 

@@ -1,6 +1,4 @@
 ﻿using Factory;
-using Factory.DB;
-using Factory.Keycloak;
 using Factory.Keycloak.Model;
 using Model;
 using Factory.DB.Model;
@@ -9,6 +7,7 @@ using System.Diagnostics;
 using System.Security;
 using System.Runtime.Versioning;
 using Factory.CouchbaseLiteFactory.Model;
+using Factory.DB;
 
 namespace Service
 {
@@ -86,7 +85,7 @@ namespace Service
                 #region return success
                 loginSession.DeviceIdCheck = true;
                 await ClearSessions(loginSession);
-                loginSession.Save();
+                await loginSession.Save();
 
                 return Tuple.Create(authResult, "success", loginSession);
                 #endregion
@@ -97,7 +96,7 @@ namespace Service
 
                 Log.Error("{funcName}: {error}", funcName, ex.Message);
                 await ClearSessions(loginSession);
-                loginSession.Save();
+                await loginSession.Save();
                 
                 return Tuple.Create(false, ex.Message, loginSession);
             }
@@ -263,18 +262,26 @@ namespace Service
 
         internal async Task<Tuple<bool,string>> IsRegisteredDevice(CipherService cipherService)
         {
-            var deviceId = Fingerprint.GenFingerprint();
-            var machineLog = await GetRegisteredDeviceId();
-
-            var registeredDeviceId = cipherService.Decrypt(machineLog.Fingerprint);
-
-            if (!deviceId.Equals(registeredDeviceId))
+            try
             {
-                return Tuple.Create(false, "Device id not match with registered profile!");
+                var deviceId = Fingerprint.GenFingerprint();
+                var machineLog = await GetRegisteredDeviceId();
+
+                var registeredDeviceId = cipherService.Decrypt(machineLog.Fingerprint);
+
+                if (!deviceId.Equals(registeredDeviceId))
+                {
+                    return Tuple.Create(false, "Device id not match with registered profile!");
+                }
+                else
+                {
+                    return Tuple.Create(true, "success");
+                }
             }
-            else
-            {
-                return Tuple.Create(true,"success");
+            catch(Exception ex) {
+                var funcName = string.Format("{0} : {1}", new StackFrame().GetMethod().DeclaringType.FullName, System.Reflection.MethodBase.GetCurrentMethod().Name);
+                Log.Error("{funcName}: {error}", funcName, ex.Message);
+                throw new Exception(ex.Message);
             }
         }
 
@@ -287,14 +294,17 @@ namespace Service
         private async Task<ModTableMachineLog> GetRegisteredDeviceId()
         {            
             try
-            { 
-                using var dbContext = new DBContext();
-
-                var tableName = ReflectionFactory.GetTableAttribute(typeof(ModTableMachineLog));
-                var query = "select * from " + tableName;
-                var result = (await dbContext.ReadMapperAsync<ModTableMachineLog>(query)).First();
-                
-                return result;
+            {                
+                var machineLogResults = await ModTableMachineLog.LoadAll<ModTableMachineLog>();
+                if (machineLogResults.Any())
+                {
+                    return machineLogResults.First();
+                }
+                else
+                {
+                    throw new Exception("No registered device found!");
+                }
+               
             }
             catch (Exception ex)
             {
@@ -314,17 +324,25 @@ namespace Service
         {
             try
             {
-                var tableName = ReflectionFactory.GetTableAttribute(typeof(ModTableMachineLog));
-                using var dbContext = new Factory.DB.DBContext();
-                var countResult = await dbContext.ExecuteScalarAsync("select count(*) from " + tableName);
-                if (int.Parse(countResult.ToString()) < 1)
-                {
+                //var tableName = ReflectionFactory.GetTableAttribute(typeof(ModTableMachineLog));
+                //using var dbContext = new Factory.DB.DBContext();
+                //var countResult = await dbContext.ExecuteScalarAsync("select count(*) from " + tableName);
+                //if (int.Parse(countResult.ToString()) < 1)
+                //{
 
+                //    var deviceId = cipherService.Encrypt(Fingerprint.GenFingerprint());
+                //    var machineLog = new ModTableMachineLog(deviceId);
+
+                //    var result = dbContext.QueryFactory.Insert(machineLog);
+                //    await dbContext.ExecuteNonQueryAsync(result.Item1, result.Item2);
+                //}
+
+                var machineLogResults = await ModTableMachineLog.LoadAll<ModTableMachineLog>();
+                if (!machineLogResults.Any())
+                {
                     var deviceId = cipherService.Encrypt(Fingerprint.GenFingerprint());
                     var machineLog = new ModTableMachineLog(deviceId);
-
-                    var result = dbContext.QueryFactory.Insert(machineLog);
-                    await dbContext.ExecuteNonQueryAsync(result.Item1, result.Item2);
+                    await machineLog.Save();
                 }
             }
             catch (Exception ex)
@@ -359,13 +377,20 @@ namespace Service
         {
             try
             {
-                var table = ReflectionFactory.GetTableAttribute(typeof(LoginResultModel));
-                var query = $"Update {table} set sessionId='' where sid<>@sid";
-                var sqlParams = new DynamicSqlParameter();
-                sqlParams.Add("@sid", loginSession.Sid);
+           
+                var queryStr = $"select * from {LoginResultModel.GetCollectionName<LoginResultModel>()} where sid<>$sid";
+                var sqlParam = new DynamicSqlParameter();
+                sqlParam.Add("sid", loginSession.Sid);
+                IEnumerable<LoginResultModel> loginResults = await LoginResultModel.LoadAll<LoginResultModel>();
 
-                var dbContext = new DBContext();
-                return await dbContext.ExecuteNonQueryAsync(query, sqlParams);
+                var icount = 0;
+                foreach (var loginResult in loginResults)
+                {
+                    loginResult.SessionId = "";
+                    await loginResult.Save();
+                    icount++;
+                }
+                return icount;
             }
             catch (Exception ex)
             {

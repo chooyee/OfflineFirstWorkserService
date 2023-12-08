@@ -7,9 +7,6 @@ namespace Factory.DB.Model
     public class ModTableSSOUser : CouchbaseObjectModelBase
     {
 
-        //[SqlProperty("id", DataType.INT)]
-        //public int Id { get; set; }
-
         [SqlPrimaryKey]
         [SqlProperty("username", DataType.TEXT)]
         public string? UserName { get; set; }
@@ -66,6 +63,7 @@ namespace Factory.DB.Model
     [Collection("tbl_audit_log")]
     public class ModTableAuditLog: CouchbaseObjectModelBase
     {
+
         //[SqlPrimaryKey]
         //[SqlAutoIncrement]
         //[SqlProperty("id", DataType.INT)]

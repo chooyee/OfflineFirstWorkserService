@@ -23,7 +23,7 @@ namespace Factory.CouchbaseLiteFactory
             {
                 var funcName = string.Format("{0} : {1}", new StackFrame().GetMethod().DeclaringType.FullName, MethodBase.GetCurrentMethod().Name);
 
-                Log.Error("{funcName}: Connection to SQLITE Failed: {error}", funcName, ex.Message);
+                Log.Error("{funcName}: Connection to Couchbase Lite Failed: {error}", funcName, ex.Message);
                 throw new Exception(ex.Message);
             }
         }
@@ -32,6 +32,10 @@ namespace Factory.CouchbaseLiteFactory
         {
             try
             {
+                //Check is collection name valid
+                var nameValidationResult = IsValidCollectionName(collectionName);
+                if (!nameValidationResult.Item1) throw nameValidationResult.Item2;
+
                 _database = GetDatabase(databaseName);
                 _collection = _database.GetCollection(collectionName, scopeName);
                 if (_collection == null)
@@ -47,10 +51,6 @@ namespace Factory.CouchbaseLiteFactory
         }
 
       
-
-        
-
-       
         protected virtual void Dispose(bool disposing)
         {
             if (!disposedValue)
@@ -58,7 +58,8 @@ namespace Factory.CouchbaseLiteFactory
                 if (disposing)
                 {
                     // TODO: dispose managed state (managed objects)
-
+                    _database.Dispose();
+                    _collection.Dispose();
                 }
 
                 // TODO: free unmanaged resources (unmanaged objects) and override finalizer

@@ -1,4 +1,6 @@
-﻿using System.Text;
+﻿using Serilog;
+using System.Diagnostics;
+using System.Text;
 
 namespace Model.SSO
 {
@@ -46,7 +48,16 @@ namespace Model.SSO
 
         private static string GetAbsUrl(string absUrl)
         {
-            return Cryptolib2.Crypto.DecryptText(absUrl, false);
+            try
+            {
+                return Cryptolib2.Crypto.DecryptText(absUrl, false);
+            }
+            catch (Exception ex)
+            {
+                var funcName = string.Format("{0} : {1}", new StackFrame().GetMethod().DeclaringType.FullName, System.Reflection.MethodBase.GetCurrentMethod().Name);
+                Log.Error("{funcName}: {error}", funcName, ex.Message);
+                throw;
+            }
         }
     }
 }

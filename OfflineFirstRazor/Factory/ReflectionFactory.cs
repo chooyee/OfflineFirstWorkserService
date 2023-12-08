@@ -40,8 +40,10 @@ namespace Factory
         internal static Attribute GetModelAttribute(Type t, Type attributeType)
         {
             var attribute = Attribute.GetCustomAttribute(t, attributeType);
-            if (attribute != null) return attribute;
-            else return null;
+            if (attribute != null) 
+                return attribute;
+            else 
+                return null;
         }
 
         internal static string GetTypeName(Type type)

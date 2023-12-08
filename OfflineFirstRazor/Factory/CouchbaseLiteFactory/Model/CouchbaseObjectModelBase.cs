@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using Service;
 using System.Collections;
+using System.Security.Cryptography.X509Certificates;
 
 namespace Factory.CouchbaseLiteFactory.Model
 {
@@ -14,10 +15,36 @@ namespace Factory.CouchbaseLiteFactory.Model
     {
         [DocumentId]
         public string ID { get; set; }
+
+        public static async Task<IEnumerable<T>> LoadAll<T>()
+        {        
+            var modelAttribute = (CollectionAttribute)ReflectionFactory.GetModelAttribute(typeof(T), typeof(CollectionAttribute));
+
+            if (modelAttribute == null) throw new ArgumentException(nameof(T) + " is not a valid couchbase model!");
+
+            var collectionName = modelAttribute.CollectionName;
+
+            return await Task.Run(() => {
+                using var db = new CouchbaseService(collectionName);
+                return db.Search<T>($"select * from {collectionName}");
+            });
+        }
+
+        public static string GetCollectionName<T>()
+        {
+            var modelAttribute = (CollectionAttribute)ReflectionFactory.GetModelAttribute(typeof(T), typeof(CollectionAttribute));
+
+            var nameValidationResult = CouchbaseCollection.IsValidCollectionName(modelAttribute.CollectionName);
+            if (!nameValidationResult.Item1)
+                throw nameValidationResult.Item2;
+
+            return modelAttribute.CollectionName;
+        }
     }
 
     public static class CouchbaseModelExt
     {
+        
 
         public static async Task<bool> Load<T>(this T thisObj, string documentID)
         {
@@ -50,7 +77,11 @@ namespace Factory.CouchbaseLiteFactory.Model
                 return await Task.Run(() =>
                 {
                     using var db = new CouchbaseService(collectionName);
-                    return db.Save(thisObj);
+                  
+                    //assign the id back to the object
+                    thisObj.ID = db.Save(thisObj);
+
+                    return thisObj;
                 });
                 
             }
